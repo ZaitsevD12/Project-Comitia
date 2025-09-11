@@ -1,6 +1,6 @@
 # Ignore Gradle project-specific cache directory
 .gradle
 mypeak.db
-
+backup.zip
 # Ignore Gradle build output directory
 build
