@@ -1,0 +1,588 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 14px;
+  /* Simplified color palette */
+  --background: #0a0a0f;
+  --foreground: #ffffff;
+  --card: #141420;
+  --card-foreground: #ffffff;
+  --popover: #141420;
+  --popover-foreground: #ffffff;
+  --primary: #00d4ff;
+  --primary-foreground: #000000;
+  --secondary: #1a1a2e;
+  --secondary-foreground: #ffffff;
+  --muted: #16213e;
+  --muted-foreground: #8892b0;
+  --accent: #233554;
+  --accent-foreground: #ffffff;
+  --destructive: #ff3366;
+  --destructive-foreground: #ffffff;
+  --border: #233554;
+  --input: #16213e;
+  --input-background: #16213e;
+  --switch-background: #525252;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #00d4ff;
+  --chart-1: #00d4ff;
+  --chart-2: #7c3aed;
+  --chart-3: #53fc18;
+  --chart-4: #ff6b35;
+  --chart-5: #ffd23f;
+  --radius: 0.5rem;
+  --sidebar: #0a0a0f;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #00d4ff;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #141420;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #233554;
+  --sidebar-ring: #00d4ff;
+  
+  /* Rating colors - muted and more subtle */
+  --rating-excellent: #059669; /* More muted green */
+  --rating-good: #65a30d; /* More muted lime */
+  --rating-mixed: #d97706; /* More muted orange-yellow */
+  --rating-poor: #dc2626; /* More muted orange-red */
+  --rating-bad: #b91c1c; /* More muted red */
+  
+  /* Responsive layout variables */
+  --app-max-width-mobile: 448px;  /* max-w-md (28rem) */
+  --app-max-width-sm: 512px;      /* max-w-lg (32rem) */
+  --app-max-width-md: 576px;      /* max-w-xl (36rem) */
+  --app-max-width-lg: 672px;      /* max-w-2xl (42rem) */
+}
+
+/* Media queries for responsive font sizing */
+@media (min-width: 640px) {
+  :root {
+    --font-size: 15px;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --font-size: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --font-size: 16px;
+  }
+}
+
+.dark {
+  --background: #0a0a0f;
+  --foreground: #ffffff;
+  --card: #141420;
+  --card-foreground: #ffffff;
+  --popover: #141420;
+  --popover-foreground: #ffffff;
+  --primary: #00d4ff;
+  --primary-foreground: #000000;
+  --secondary: #1a1a2e;
+  --secondary-foreground: #ffffff;
+  --muted: #16213e;
+  --muted-foreground: #8892b0;
+  --accent: #233554;
+  --accent-foreground: #ffffff;
+  --destructive: #ff3366;
+  --destructive-foreground: #ffffff;
+  --border: #233554;
+  --input: #16213e;
+  --ring: #00d4ff;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: #00d4ff;
+  --chart-2: #7c3aed;
+  --chart-3: #53fc18;
+  --chart-4: #ff6b35;
+  --chart-5: #ffd23f;
+  --sidebar: #0a0a0f;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #00d4ff;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #141420;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #233554;
+  --sidebar-ring: #00d4ff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Rating colors */
+  --color-rating-excellent: var(--rating-excellent);
+  --color-rating-good: var(--rating-good);
+  --color-rating-mixed: var(--rating-mixed);
+  --color-rating-poor: var(--rating-poor);
+  --color-rating-bad: var(--rating-bad);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  /* Responsive body styling for larger screens */
+  @media (min-width: 768px) {
+    body {
+      background: linear-gradient(135deg, var(--background) 0%, #0f0f1a 100%);
+    }
+  }
+}
+
+/**
+ * Typography system with responsive scaling
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.4;
+    }
+  }
+}
+
+@layer utilities {
+  /* Interactive Button Classes with improved easing and timing */
+  .btn-ios-style {
+    transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  
+  .btn-ios-style:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  
+  .btn-telegram-style {
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  
+  .btn-telegram-style:hover {
+    transform: translateY(-1px) scale(1.05);
+  }
+  
+  .btn-telegram-style:active {
+    transform: translateY(0) scale(0.95);
+  }
+  
+  .nav-tab-style {
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  
+  .nav-tab-style:active {
+    transform: scale(0.95);
+  }
+  
+  .card-interactive {
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  
+  .card-interactive:hover {
+    transform: translateY(-2px) scale(1.02);
+    
+    /* Enhanced hover effects for larger screens */
+    @media (min-width: 768px) {
+      box-shadow: 0 10px 25px -5px rgba(0, 212, 255, 0.1), 0 8px 10px -6px rgba(0, 212, 255, 0.05);
+    }
+  }
+  
+  .card-interactive:active {
+    transform: translateY(0) scale(0.98);
+  }
+  
+  /* Rating color utilities */
+  .text-rating-excellent {
+    color: var(--rating-excellent);
+  }
+  
+  .text-rating-good {
+    color: var(--rating-good);
+  }
+  
+  .text-rating-mixed {
+    color: var(--rating-mixed);
+  }
+  
+  .text-rating-poor {
+    color: var(--rating-poor);
+  }
+  
+  .text-rating-bad {
+    color: var(--rating-bad);
+  }
+  
+  .bg-rating-excellent {
+    background-color: var(--rating-excellent);
+  }
+  
+  .bg-rating-good {
+    background-color: var(--rating-good);
+  }
+  
+  .bg-rating-mixed {
+    background-color: var(--rating-mixed);
+  }
+  
+  .bg-rating-poor {
+    background-color: var(--rating-poor);
+  }
+  
+  .bg-rating-bad {
+    background-color: var(--rating-bad);
+  }
+  
+  /* Responsive grid improvements */
+  .responsive-grid-2 {
+    @apply grid grid-cols-2 gap-3;
+  }
+  
+  @media (min-width: 640px) {
+    .responsive-grid-2 {
+      @apply grid-cols-2 gap-4;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .responsive-grid-2 {
+      @apply grid-cols-3 gap-4;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .responsive-grid-2 {
+      @apply grid-cols-3 gap-5;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+  scroll-behavior: smooth;
+}
+
+/* Enhanced scrollbar styling for larger screens */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Selection styling */
+::selection {
+  background: var(--primary/0.2);
+  color: var(--foreground);
+}
+
+/* Enhanced focus styling for accessibility */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Responsive focus improvements */
+@media (min-width: 768px) {
+  :focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+}
+
+/* Global interactive styles with improved smoothness */
+button {
+  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+button:not([disabled]):active {
+  transform: scale(0.98);
+}
+
+/* Desktop-specific enhancements */
+@media (min-width: 768px) {
+  /* Enhanced shadows for desktop */
+  .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 212, 255, 0.1), 0 4px 6px -2px rgba(0, 212, 255, 0.05);
+  }
+  
+  /* Subtle animations for desktop interactions */
+  .card-interactive:hover {
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1024px) {
+  /* Enhanced hover states for desktop with smoother transitions */
+  button:hover:not([disabled]) {
+    transform: translateY(-1px);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  
+  .btn-telegram-style:hover {
+    transform: translateY(-2px) scale(1.05);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+}
+
+/* Ultra-wide screen support */
+@media (min-width: 1536px) {
+  :root {
+    --font-size: 17px;
+  }
+}
+
+/* Custom animations */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-gentle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes screen-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes screen-slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-16px) scale(0.98);
+  }
+}
+
+@keyframes screen-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes image-upload-success {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+.animate-pulse-gentle {
+  animation: pulse-gentle 2s ease-in-out infinite;
+}
+
+.animate-screen-slide-in {
+  animation: screen-slide-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-screen-slide-out {
+  animation: screen-slide-out 0.3s cubic-bezier(0.755, 0.05, 0.855, 0.06) forwards;
+}
+
+.animate-screen-fade-in {
+  animation: screen-fade-in 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-image-upload-success {
+  animation: image-upload-success 0.8s ease-out forwards;
+}
+
+/* Smooth screen transitions */
+.screen-transition {
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.screen-transition-fast {
+  transition: all 0.3s cubic-bezier(0.755, 0.05, 0.855, 0.06);
+}
+
+/* Image delete button utilities */
+.delete-button {
+  pointer-events: auto;
+  z-index: 20;
+}
+
+.delete-button:hover {
+  backdrop-filter: blur(4px);
+}

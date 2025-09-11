@@ -1,0 +1,113 @@
+package com.mypeak.service;
+
+import com.mypeak.dto.AddGameRequest;
+import com.mypeak.dto.GameDTO;
+import com.mypeak.entity.Game;
+import com.mypeak.entity.Review;
+import com.mypeak.repository.GameRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
+@Service
+public class GameService {
+    @Autowired
+    private GameRepository gameRepository;
+
+    public List<GameDTO> getAllGames(String search, String genre, String platform) {
+        List<Game> games;
+        if (search != null && !search.isEmpty()) {
+            games = gameRepository.findByTitleContainingIgnoreCase(search);
+        } else {
+            games = gameRepository.findAll();
+        }
+        if (genre != null && !"All".equals(genre)) {
+            games = games.stream().filter(g -> g.getGenre().equals(genre)).collect(Collectors.toList());
+        }
+        if (platform != null && !"All".equals(platform)) {
+            games = games.stream().filter(g -> g.getPlatforms().contains(platform)).collect(Collectors.toList());
+        }
+        return games.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    public List<GameDTO> getTopRated(String genre, String platform) {
+        List<Game> games = gameRepository.findTopRated();
+        if (genre != null && !"All".equals(genre)) {
+            games = games.stream().filter(g -> g.getGenre().equals(genre)).collect(Collectors.toList());
+        }
+        if (platform != null && !"All".equals(platform)) {
+            games = games.stream().filter(g -> g.getPlatforms().contains(platform)).collect(Collectors.toList());
+        }
+        return games.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    public List<GameDTO> getPopular(String genre, String platform) {
+        List<Game> games = gameRepository.findAll();
+        // Фильтрация
+        if (genre != null && !"All".equals(genre)) {
+            games = games.stream().filter(g -> g.getGenre().equals(genre)).collect(Collectors.toList());
+        }
+        if (platform != null && !"All".equals(platform)) {
+            games = games.stream().filter(g -> g.getPlatforms().contains(platform)).collect(Collectors.toList());
+        }
+        // Сортировка по reviews / age (years since release)
+        LocalDate now = LocalDate.now();
+        games = games.stream()
+                .sorted((a, b) -> {
+                    double scoreA = a.getTotalReviews() / (ChronoUnit.YEARS.between(LocalDate.of(a.getReleaseYear(), 1, 1), now) + 1);
+                    double scoreB = b.getTotalReviews() / (ChronoUnit.YEARS.between(LocalDate.of(b.getReleaseYear(), 1, 1), now) + 1);
+                    return Double.compare(scoreB, scoreA);
+                })
+                .collect(Collectors.toList());
+        return games.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    public Optional<GameDTO> getGameById(Long id) {
+        return gameRepository.findById(id).map(this::toDTO);
+    }
+
+    public GameDTO addGame(AddGameRequest request) {
+        Game game = new Game();
+        game.setTitle(request.getTitle());
+        game.setDescription(request.getDescription());
+        game.setGenre(request.getGenre());
+        game.setPlatforms(request.getPlatforms());
+        game.setImage(request.getImage());
+        game.setReleaseYear(request.getReleaseYear());
+        game.setDeveloper(request.getDeveloper());
+        game = gameRepository.save(game);
+        return toDTO(game);
+    }
+
+    // Обновление рейтинга после добавления отзыва (оптимизация: вычисляем на лету)
+    public void updateGameRating(Long gameId) {
+        Game game = gameRepository.findById(gameId).orElseThrow();
+        List<Review> reviews = game.getReviews();
+        if (!reviews.isEmpty()) {
+            double avg = reviews.stream().mapToDouble(Review::getScore).average().getAsDouble();
+            game.setOverallRating(avg);
+            game.setTotalReviews(reviews.size());
+            gameRepository.save(game);
+        }
+    }
+
+    private GameDTO toDTO(Game game) {
+        GameDTO dto = new GameDTO();
+        dto.setId(game.getId());
+        dto.setTitle(game.getTitle());
+        dto.setDescription(game.getDescription());
+        dto.setGenre(game.getGenre());
+        dto.setPlatforms(game.getPlatforms());
+        dto.setImage(game.getImage());
+        dto.setOverallRating(game.getOverallRating());
+        dto.setTotalReviews(game.getTotalReviews());
+        dto.setReleaseYear(game.getReleaseYear());
+        dto.setDeveloper(game.getDeveloper());
+        return dto;
+    }
+}
