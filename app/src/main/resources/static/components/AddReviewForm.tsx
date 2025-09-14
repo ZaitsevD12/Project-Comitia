@@ -79,13 +79,18 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      console.error('No userId found');
+      return;
+    }
     const method = reviewId ? 'PUT' : 'POST';
     const url = reviewId ? `/api/reviews/${reviewId}` : '/api/reviews';
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        gameId, userId: 1, score, reviewText, hoursPlayed: parseInt(hoursPlayed),
+        gameId, userId: parseInt(userId), score, reviewText, hoursPlayed: parseInt(hoursPlayed),
         platform: selectedPlatform, completed, recommended, screenshot: screenshotPreview
       })
     });

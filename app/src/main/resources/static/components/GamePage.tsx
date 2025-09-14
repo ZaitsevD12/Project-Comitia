@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, ThumbsUp, ThumbsDown, Clock, Monitor, CheckCircle, Plus, Filter } from 'lucide-react';
+import { Star, ThumbsUp, ThumbsDown, Clock, Monitor, CheckCircle, Plus, Filter, MoreVertical, Edit } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Badge } from './ui/badge';
@@ -9,12 +9,14 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { MetacriticRating } from './MetacriticRating';
 import { LikeDislikeButton } from './LikeDislikeButton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { SortOption } from '../types';
 interface GamePageProps {
   gameId: string | null;
   onAddReview: (gameId: string) => void;
+  onEditReview: (reviewId: string, gameId: string) => void;
 }
-export function GamePage({ gameId, onAddReview }: GamePageProps) {
+export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [game, setGame] = useState(null);
   const [gameReviews, setGameReviews] = useState([]);
@@ -25,6 +27,14 @@ export function GamePage({ gameId, onAddReview }: GamePageProps) {
       fetch(`/api/reviews/game/${gameId}`).then(res => res.json()).then(setGameReviews);
     }
   }, [gameId]);
+
+  const handleDelete = (id: number) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+    fetch(`/api/reviews/${id}?userId=${userId}`, { method: 'DELETE' }).then(() => {
+      setGameReviews(prev => prev.filter(r => r.id !== id));
+    });
+  };
 
   if (!gameId || !game) {
     return (
@@ -92,6 +102,23 @@ export function GamePage({ gameId, onAddReview }: GamePageProps) {
               <ThumbsUp className="h-4 w-4 text-green-600" />
             ) : (
               <ThumbsDown className="h-4 w-4 text-red-600" />
+            )}
+            {review.userId === parseInt(localStorage.getItem('userId') || '0') && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEditReview(review.id.toString(), gameId || '')}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(review.id)}>
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>

@@ -24,18 +24,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    if (token) {
-      fetch(`/auth/telegram?token=${token}`, {
-        method: 'GET',
-        credentials: 'include'
-      }).then(response => {
-        if (response.ok) {
-          window.history.replaceState(null, '', '/');
-          setCurrentScreen('home');
-        }
-      }).catch(err => console.error(err));
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      const initData = tg.initData;
+      if (initData) {
+        fetch('/api/auth/telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData }),
+        }).then(res => res.json()).then(data => {
+          localStorage.setItem('userId', data.userId.toString());
+        }).catch(console.error);
+      }
     }
   }, []);
 
@@ -232,6 +233,7 @@ export default function App() {
               <GamePage
                 gameId={selectedGameId}
                 onAddReview={navigateToAddReview}
+                onEditReview={(reviewId) => navigateToEditReview(reviewId, selectedGameId || '')}
               />
             </div>
           </div>
@@ -242,7 +244,7 @@ export default function App() {
             <div className={contentWrapperClass}>
               <AddReviewForm
                 gameId={selectedGameId}
-                reviewId={selectedReviewId}
+                reviewId={selectedReviewId ? parseInt(selectedReviewId) : undefined}
                 onSubmit={() => navigateWithAnimation('home')}
                 onCancel={() => navigateWithAnimation('home')}
               />
@@ -264,7 +266,7 @@ export default function App() {
         return (
           <div className={screenClass}>
             <div className={contentWrapperClass}>
-              <UserProfile onGameSelect={navigateToGame} onEditReview={navigateToEditReview} />
+              <UserProfile onGameSelect={navigateToGame} />
             </div>
           </div>
         );
