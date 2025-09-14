@@ -47,8 +47,8 @@ public class ReviewService {
             throw new RuntimeException("Duplicate review");
         }
 
-        User user = userRepository.findById(request.getUserId()).orElseThrow();
-        Game game = gameRepository.findById(request.getGameId()).orElseThrow();
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
+        Game game = gameRepository.findById(request.getGameId()).orElseThrow(() -> new RuntimeException("Game not found with id: " + request.getGameId()));
 
         Review review = new Review();
         review.setUser(user);

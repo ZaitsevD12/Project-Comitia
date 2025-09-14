@@ -35,6 +35,11 @@ public class UserService {
         dto.setTotalReviews(user.getReviews() != null ? user.getReviews().size() : 0);
         dto.setAverageRating(user.getReviews() != null && !user.getReviews().isEmpty() ?
                 user.getReviews().stream().mapToDouble(Review::getScore).average().getAsDouble() : 0.0);
+        dto.setCreatedAt(user.getCreatedAt());
         return dto;
+    }
+
+    public Optional<User> findByTelegramId(Long telegramId) {
+        return userRepository.findByTelegramId(telegramId);
     }
 }

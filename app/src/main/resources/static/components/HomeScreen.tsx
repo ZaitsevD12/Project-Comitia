@@ -32,15 +32,15 @@ export function HomeScreen({ onGameSelect, onAddGame }: HomeScreenProps) {
     if (searchQuery) params.append('search', searchQuery);
     if (selectedGenre !== 'All') params.append('genre', selectedGenre);
     if (selectedPlatform !== 'All') params.append('platform', selectedPlatform);
-    fetch(`http://localhost:8080/api/games?${params}`)
+    fetch(`/api/games?${params}`)
       .then(res => res.json())
       .then(data => {
         setGames(data);
         if (data.length === 0 && searchQuery && !fetchedQueries.has(searchQuery)) {
           setFetchedQueries(new Set([...fetchedQueries, searchQuery]));
-          fetch(`http://localhost:8080/api/steam/search?query=${searchQuery}`)
+          fetch(`/api/steam/search?query=${searchQuery}`)
             .then(() => {
-              fetch(`http://localhost:8080/api/games?search=${searchQuery}`)
+              fetch(`/api/games?search=${searchQuery}`)
                 .then(res => res.json())
                 .then(setGames);
             })

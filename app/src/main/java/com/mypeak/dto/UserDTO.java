@@ -2,6 +2,8 @@ package com.mypeak.dto;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class UserDTO {
     private Long id;
@@ -9,4 +11,5 @@ public class UserDTO {
     private String avatar;
     private Integer totalReviews;
     private Double averageRating;
+    private LocalDateTime createdAt;
 }

@@ -14,18 +14,9 @@ export default defineConfig({
     },
   },
   server: {
+    allowedHosts: ['bd334c0ac120.ngrok-free.app'],
     proxy: {
-      '/games': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/reviews': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/auth': {
+      '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,

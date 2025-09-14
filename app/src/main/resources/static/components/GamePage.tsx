@@ -21,8 +21,8 @@ export function GamePage({ gameId, onAddReview }: GamePageProps) {
 
   useEffect(() => {
     if (gameId) {
-      fetch(`http://localhost:8080/api/games/${gameId}`).then(res => res.json()).then(setGame);
-      fetch(`http://localhost:8080/api/reviews/game/${gameId}`).then(res => res.json()).then(setGameReviews);
+      fetch(`/api/games/${gameId}`).then(res => res.json()).then(setGame);
+      fetch(`/api/reviews/game/${gameId}`).then(res => res.json()).then(setGameReviews);
     }
   }, [gameId]);
 

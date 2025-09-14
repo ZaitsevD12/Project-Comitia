@@ -19,9 +19,9 @@ export function TopRatingsScreen({ onGameSelect }: TopRatingsScreenProps) {
   const [animationKey, setAnimationKey] = useState(0);
   const [sortedGames, setSortedGames] = useState([]);
   useEffect(() => {
-    let url = 'http://localhost:8080/api/games';
-    if (sortBy === 'rating') url = 'http://localhost:8080/api/games/top-rated';
-    if (sortBy === 'popularity') url = 'http://localhost:8080/api/games/popular';
+    let url = '/api/games';
+    if (sortBy === 'rating') url = '/api/games/top-rated';
+    if (sortBy === 'popularity') url = '/api/games/popular';
     const params = new URLSearchParams();
     if (selectedGenre !== 'All') params.append('genre', selectedGenre);
     if (selectedPlatform !== 'All') params.append('platform', selectedPlatform);

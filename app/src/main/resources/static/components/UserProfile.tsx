@@ -9,33 +9,67 @@ import { Separator } from './ui/separator';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { MetacriticRating } from './MetacriticRating';
 import { SteamIcon } from './SteamIcon';
-import { AddReviewForm } from './AddReviewForm'; // Import for edit
+import { AddReviewForm } from './AddReviewForm';
 
 interface UserProfileProps {
   onGameSelect: (gameId: string) => void;
 }
+
 export function UserProfile({ onGameSelect }: UserProfileProps) {
   const [selectedTab, setSelectedTab] = useState<'reviews' | 'stats'>('reviews');
-  const [isSteamConnected, setIsSteamConnected] = useState(false); // Mock Steam connection state
+  const [isSteamConnected, setIsSteamConnected] = useState(false);
   const [user, setUser] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [editingReviewId, setEditingReviewId] = useState(null); // For edit mode
-  // Assume userId = 1
+  const [editingReviewId, setEditingReviewId] = useState(null);
+  const [userId, setUserId] = useState(null);
+
   useEffect(() => {
-    fetchUserAndReviews();
+    const initTelegram = async () => {
+      if (window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        const initData = tg.initData;
+        console.log('Telegram initData:', initData);
+        if (initData) {
+          try {
+            const response = await fetch('/api/auth/telegram', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ initData }),
+            });
+            const data = await response.json();
+            setUserId(data.userId);
+            localStorage.setItem('userId', data.userId);
+          } catch (error) {
+            console.error('Auth error:', error);
+          }
+        }
+      } else {
+        setUserId(localStorage.getItem('userId') || '1'); // Fallback
+      }
+    };
+    initTelegram();
   }, []);
 
+  useEffect(() => {
+    if (userId) {
+      fetchUserAndReviews();
+    }
+  }, [userId]);
+
   const fetchUserAndReviews = () => {
-    fetch('http://localhost:8080/api/users/1').then(res => res.json()).then(setUser);
-    fetch('http://localhost:8080/api/reviews/user/1').then(res => res.json()).then(setReviews);
+    fetch(`/api/users/${userId}`).then(res => res.json()).then(setUser);
+    fetch(`/api/reviews/user/${userId}`).then(res => res.json()).then(setReviews);
   };
 
+  if (!userId) return <div className="p-4 text-center">Authenticating...</div>;
   if (!user) return <div className="p-4 text-center">Loading...</div>;
 
   if (editingReviewId) {
     return <AddReviewForm
       gameId={reviews.find(r => r.id === editingReviewId).gameId}
       reviewId={editingReviewId}
+      userId={userId}
       onSubmit={() => {
         setEditingReviewId(null);
         fetchUserAndReviews();
@@ -44,7 +78,7 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
     />;
   }
 
-  const reviewedGames = reviews.map(review => ({ ...review, game: { id: review.gameId, title: review.gameTitle, image: review.gameImage } })); // Adjust based on DTO
+  const reviewedGames = reviews.map(review => ({ ...review, game: { id: review.gameId, title: review.gameTitle, image: review.gameImage } }));
   const stats = {
     totalReviews: reviews.length,
     averageScore: reviews.length > 0 ? reviews.reduce((sum, review) => sum + review.score, 0) / reviews.length : 0,
@@ -68,17 +102,13 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
     window.URL.revokeObjectURL(url);
   };
   const handleSteamAuth = () => {
-    if (!isSteamConnected) {
-      setIsSteamConnected(true);
-    } else {
-      setIsSteamConnected(false);
-    }
+    setIsSteamConnected(!isSteamConnected);
   };
   const handleEditReview = (id) => {
     setEditingReviewId(id);
   };
   const handleDeleteReview = (id) => {
-    fetch(`http://localhost:8080/api/reviews/${id}?userId=1`, { method: 'DELETE' }).then(fetchUserAndReviews);
+    fetch(`/api/reviews/${id}?userId=${userId}`, { method: 'DELETE' }).then(fetchUserAndReviews);
   };
   const renderReviewCard = (reviewWithGame: any) => {
     const { game, score, reviewText, hoursPlayed, platform, completed, recommended, verified, createdAt, id } = reviewWithGame;
@@ -92,7 +122,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
               className="w-16 h-16 object-cover rounded-lg cursor-pointer btn-ios-style hover:shadow-md"
               onClick={() => onGameSelect(game.id)}
             />
-
             <div className="flex-1 space-y-2">
               <div className="flex items-start justify-between">
                 <div>
@@ -114,7 +143,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
                     )}
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <MetacriticRating
                     score={score}
@@ -123,7 +151,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
                     showScore={false}
                   />
                   {verified && <CheckCircle className="h-3 w-3 text-primary" />}
-
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-6 w-6 btn-ios-style">
@@ -142,9 +169,7 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
                   </DropdownMenu>
                 </div>
               </div>
-
               <p className="text-sm text-muted-foreground line-clamp-2">{reviewText}</p>
-
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{new Date(createdAt).toLocaleDateString()}</span>
                 <div className="flex items-center gap-1">
@@ -171,7 +196,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
             <div className="text-xs sm:text-sm text-muted-foreground leading-tight">Total Reviews</div>
           </div>
         </Card>
-
         <Card className="border">
           <div className="p-3 sm:p-4 h-20 sm:h-24 flex flex-col items-center justify-center text-center space-y-1">
             <div className="flex justify-center items-center mb-1">
@@ -188,14 +212,12 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
             </div>
           </div>
         </Card>
-
         <Card className="border">
           <div className="p-3 sm:p-4 h-20 sm:h-24 flex flex-col items-center justify-center text-center space-y-1">
             <div className="text-xl sm:text-2xl font-bold text-primary leading-none">{stats.totalHours}</div>
             <div className="text-xs sm:text-sm text-muted-foreground leading-tight">Hours Played</div>
           </div>
         </Card>
-
         <Card className="border">
           <div className="p-3 sm:p-4 h-20 sm:h-24 flex flex-col items-center justify-center text-center space-y-1">
             <div className="text-xl sm:text-2xl font-bold text-green-600 leading-none">{stats.completedGames}</div>
@@ -203,7 +225,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
           </div>
         </Card>
       </div>
-
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
@@ -224,7 +245,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
   );
   return (
     <div className="p-4 space-y-6">
-      {/* Profile Header */}
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -232,7 +252,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
               <AvatarImage src={user.avatar} alt={user.name} />
               <AvatarFallback>{user.name[0]}</AvatarFallback>
             </Avatar>
-
             <div className="flex-1">
               <h2 className="text-lg font-medium">{user.name}</h2>
               <p className="text-sm text-muted-foreground">
@@ -240,19 +259,16 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
               </p>
               <div className="flex items-center gap-1 mt-1">
                 <Star className="h-3 w-3 fill-current text-yellow-400" />
-                <span className="text-xs text-muted-foreground">Gaming enthusiast since 2019</span>
+                <span className="text-xs text-muted-foreground">Gaming enthusiast since {user.createdAt ? new Date(user.createdAt).getFullYear() : '2019'}</span>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
-      {/* Tabs */}
       <div className="flex rounded-lg bg-muted p-1">
         <button
           className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 ease-out btn-ios-style ${
-            selectedTab === 'reviews'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+            selectedTab === 'reviews' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
           }`}
           onClick={() => setSelectedTab('reviews')}
         >
@@ -260,27 +276,19 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
         </button>
         <button
           className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 ease-out btn-ios-style ${
-            selectedTab === 'stats'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+            selectedTab === 'stats' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
           }`}
           onClick={() => setSelectedTab('stats')}
         >
           Statistics
         </button>
       </div>
-      {/* Export Button */}
       {selectedTab === 'reviews' && (
-        <Button
-          variant="outline"
-          onClick={exportReviews}
-          className="w-full btn-telegram-style"
-        >
+        <Button variant="outline" onClick={exportReviews} className="w-full btn-telegram-style">
           <Download className="h-4 w-4 mr-2" />
           Export Reviews (CSV)
         </Button>
       )}
-      {/* Steam Auth Button */}
       <Card>
         <CardContent className="p-4">
           <div className="space-y-3">
@@ -297,7 +305,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
                 </Badge>
               )}
             </div>
-
             <Button
               variant={isSteamConnected ? "secondary" : "outline"}
               onClick={handleSteamAuth}
@@ -318,7 +325,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
           </div>
         </CardContent>
       </Card>
-      {/* Content */}
       <div className="transition-all duration-300 ease-out">
         {selectedTab === 'reviews' ? (
           <div className="space-y-3">

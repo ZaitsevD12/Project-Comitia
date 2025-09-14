@@ -51,7 +51,7 @@ export function AddGameForm({ onSubmit, onCancel }: AddGameFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await fetch('http://localhost:8080/api/games', {
+    await fetch('/api/games', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

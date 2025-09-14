@@ -36,12 +36,12 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
 
   useEffect(() => {
     if (gameId) {
-      fetch(`http://localhost:8080/api/games/${gameId}`)
+      fetch(`/api/games/${gameId}`)
         .then(res => res.json())
         .then(data => setGame(data));
     }
     if (reviewId) {
-      fetch(`http://localhost:8080/api/reviews/${reviewId}`)
+      fetch(`/api/reviews/${reviewId}`)
         .then(res => res.json())
         .then(data => {
           setScore(data.score);
@@ -80,7 +80,7 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const method = reviewId ? 'PUT' : 'POST';
-    const url = reviewId ? `http://localhost:8080/api/reviews/${reviewId}` : 'http://localhost:8080/api/reviews';
+    const url = reviewId ? `/api/reviews/${reviewId}` : '/api/reviews';
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
