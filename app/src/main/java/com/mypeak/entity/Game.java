@@ -1,3 +1,4 @@
+// Game.java (add indexes)
 package com.mypeak.entity;
 
 import jakarta.persistence.*;
@@ -5,7 +6,10 @@ import lombok.Data;
 import java.util.List;
 
 @Entity
-@Table(name = "games")
+@Table(name = "games", indexes = {
+        @Index(columnList = "title"),
+        @Index(columnList = "genre")
+})
 @Data
 public class Game {
     @Id
@@ -19,10 +23,10 @@ public class Game {
 
     private String genre;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> platforms;
 
-    private String image; // URL или путь
+    private String image;
 
     private Double overallRating = 0.0;
 

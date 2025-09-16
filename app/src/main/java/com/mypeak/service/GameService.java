@@ -1,3 +1,4 @@
+// GameService.java
 package com.mypeak.service;
 
 import com.mypeak.dto.AddGameRequest;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -48,14 +50,12 @@ public class GameService {
 
     public List<GameDTO> getPopular(String genre, String platform) {
         List<Game> games = gameRepository.findAll();
-        // Фильтрация
         if (genre != null && !"All".equals(genre)) {
             games = games.stream().filter(g -> g.getGenre().equals(genre)).collect(Collectors.toList());
         }
         if (platform != null && !"All".equals(platform)) {
             games = games.stream().filter(g -> g.getPlatforms().contains(platform)).collect(Collectors.toList());
         }
-        // Сортировка по reviews / age (years since release)
         LocalDate now = LocalDate.now();
         games = games.stream()
                 .sorted((a, b) -> {
@@ -84,7 +84,6 @@ public class GameService {
         return toDTO(game);
     }
 
-    // Обновление рейтинга после добавления отзыва (оптимизация: вычисляем на лету)
     public void updateGameRating(Long gameId) {
         Game game = gameRepository.findById(gameId).orElseThrow();
         List<Review> reviews = game.getReviews();
@@ -110,4 +109,8 @@ public class GameService {
         dto.setDeveloper(game.getDeveloper());
         return dto;
     }
+
+//    public CompletableFuture<GameDTO> addGameAsync(AddGameRequest request) {
+//        return CompletableFuture.supplyAsync(() -> addGame(request));
+//    }
 }

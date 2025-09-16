@@ -1,8 +1,8 @@
+// HomeScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { debounce } from 'lodash';
-import { Search, Filter, Plus, Gamepad2 } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { Input } from './ui/input';
-import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent } from './ui/card';
@@ -14,10 +14,9 @@ import { Genre, Platform } from '../types';
 
 interface HomeScreenProps {
   onGameSelect: (gameId: string) => void;
-  onAddGame: () => void;
 }
 
-export function HomeScreen({ onGameSelect, onAddGame }: HomeScreenProps) {
+export function HomeScreen({ onGameSelect }: HomeScreenProps) {
   const [games, setGames] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<Genre | 'All'>('All');
@@ -111,18 +110,6 @@ export function HomeScreen({ onGameSelect, onAddGame }: HomeScreenProps) {
     </Card>
   );
 
-  const renderAddGameButton = () => (
-    <div className="mt-6 flex justify-center">
-      <Button
-        onClick={onAddGame}
-        className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl btn-telegram-style bg-primary hover:bg-primary/90"
-        size="icon"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
-    </div>
-  );
-
   const renderGameGrid = (games: any[], emptyMessage: string) => (
     <>
       {loading ? <div>Loading...</div> : (
@@ -130,19 +117,16 @@ export function HomeScreen({ onGameSelect, onAddGame }: HomeScreenProps) {
           {games.map(renderGameCard)}
         </div>
       )}
-      {games.length === 0 ? (
+      {games.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <p>{emptyMessage}</p>
         </div>
-      ) : (
-        renderAddGameButton()
       )}
     </>
   );
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
-      {/* Search Section */}
       <div className="space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -154,7 +138,6 @@ export function HomeScreen({ onGameSelect, onAddGame }: HomeScreenProps) {
           />
         </div>
 
-        {/* Filters */}
         <div className="grid grid-cols-2 gap-2 sm:gap-3">
           <Select value={selectedGenre} onValueChange={(value) => setSelectedGenre(value as Genre | 'All')}>
             <SelectTrigger className="bg-card/50 border-border/50">
@@ -181,7 +164,6 @@ export function HomeScreen({ onGameSelect, onAddGame }: HomeScreenProps) {
           </Select>
         </div>
       </div>
-      {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">All Games</TabsTrigger>

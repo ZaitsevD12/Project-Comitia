@@ -1,3 +1,4 @@
+// GamePage.tsx
 import React, { useState, useEffect } from 'react';
 import { Star, ThumbsUp, ThumbsDown, Clock, Monitor, CheckCircle, Plus, Filter, MoreVertical, Edit } from 'lucide-react';
 import { Button } from './ui/button';
@@ -20,13 +21,23 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [game, setGame] = useState(null);
   const [gameReviews, setGameReviews] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (gameId) {
-      fetch(`/api/games/${gameId}`).then(res => res.json()).then(setGame);
-      fetch(`/api/reviews/game/${gameId}`).then(res => res.json()).then(setGameReviews);
+      setIsLoading(true);
+      fetch(`/api/games/${gameId}`).then(res => res.json()).then(data => {
+        setGame(data);
+        setIsLoading(false);
+      });
+      refreshReviews();
     }
   }, [gameId]);
+
+  const refreshReviews = () => {
+    const userId = localStorage.getItem('userId');
+    fetch(`/api/reviews/game/${gameId}${userId ? `?currentUserId=${userId}` : ''}`).then(res => res.json()).then(setGameReviews);
+  };
 
   const handleDelete = (id: number) => {
     const userId = localStorage.getItem('userId');
@@ -35,6 +46,10 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
       setGameReviews(prev => prev.filter(r => r.id !== id));
     });
   };
+
+  if (isLoading) {
+    return <div className="p-4 text-center">Loading...</div>;
+  }
 
   if (!gameId || !game) {
     return (
@@ -49,18 +64,21 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
         return b.score - a.score;
       case 'date':
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case 'helpful':
+        return (b.likes - b.dislikes) - (a.likes - a.dislikes);
       default:
         return 0;
     }
   });
-  const ratingDistribution = [
-    { rating: 10, count: Math.floor(game.totalReviews * 0.4) },
-    { rating: 9, count: Math.floor(game.totalReviews * 0.25) },
-    { rating: 8, count: Math.floor(game.totalReviews * 0.2) },
-    { rating: 7, count: Math.floor(game.totalReviews * 0.1) },
-    { rating: 6, count: Math.floor(game.totalReviews * 0.03) },
-    { rating: 5, count: Math.floor(game.totalReviews * 0.02) },
-  ];
+  const excellentCount = gameReviews.filter(r => r.score >= 75).length;
+  const goodCount = gameReviews.filter(r => r.score >= 50 && r.score < 75).length;
+  const mixedCount = gameReviews.filter(r => r.score >= 20 && r.score < 50).length;
+  const badCount = gameReviews.filter(r => r.score < 20).length;
+  const total = gameReviews.length;
+  const excellentPercent = total > 0 ? Math.round((excellentCount / total) * 100) : 0;
+  const goodPercent = total > 0 ? Math.round((goodCount / total) * 100) : 0;
+  const mixedPercent = total > 0 ? Math.round((mixedCount / total) * 100) : 0;
+  const badPercent = total > 0 ? Math.round((badCount / total) * 100) : 0;
   const renderReview = (review: any) => (
     <Card key={review.id} className="animate-slide-up">
       <CardContent className="p-4 space-y-3">
@@ -141,11 +159,13 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
           </span>
           <div className="ml-4">
             <LikeDislikeButton
-              initialLikes={0}
-              initialDislikes={0}
-              onLike={(liked) => console.log('Review liked:', liked)}
-              onDislike={(disliked) => console.log('Review disliked:', disliked)}
+              initialLikes={review.likes}
+              initialDislikes={review.dislikes}
+              liked={review.userLiked}
+              disliked={review.userDisliked}
+              reviewId={review.id}
               size="sm"
+              onVoteSuccess={refreshReviews}
             />
           </div>
         </div>
@@ -154,7 +174,6 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
   );
   return (
     <div className="space-y-6">
-      {/* Game Header */}
       <div className="relative">
         <ImageWithFallback
           src={game.image}
@@ -176,7 +195,6 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
           </div>
         </div>
       </div>
-      {/* Game Info */}
       <div className="px-4 space-y-4">
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary">{game.genre}</Badge>
@@ -184,22 +202,41 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
             <Badge key={platform} variant="outline">{platform}</Badge>
           ))}
         </div>
-        {/* Rating Breakdown */}
         <Card>
           <CardHeader className="pb-3">
             <h3 className="font-medium">Rating Breakdown</h3>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {ratingDistribution.map(({ rating, count }) => (
-              <div key={rating} className="flex items-center gap-3">
-                <span className="text-sm w-6">{rating}</span>
-                <Progress value={(count / game.totalReviews) * 100} className="flex-1 h-2" />
-                <span className="text-xs text-muted-foreground w-8">{count}</span>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-green-700 font-medium">{excellentPercent}% Excellent</span>
+                <span className="text-muted-foreground">{excellentCount} Ratings</span>
               </div>
-            ))}
+              <Progress value={excellentPercent} className="h-2 [&>div]:bg-green-700" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-green-600 font-medium">{goodPercent}% Good</span>
+                <span className="text-muted-foreground">{goodCount} Ratings</span>
+              </div>
+              <Progress value={goodPercent} className="h-2 [&>div]:bg-green-600" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-yellow-600 font-medium">{mixedPercent}% Mixed</span>
+                <span className="text-muted-foreground">{mixedCount} Ratings</span>
+              </div>
+              <Progress value={mixedPercent} className="h-2 [&>div]:bg-yellow-600" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-red-600 font-medium">{badPercent}% Bad</span>
+                <span className="text-muted-foreground">{badCount} Ratings</span>
+              </div>
+              <Progress value={badPercent} className="h-2 [&>div]:bg-red-600" />
+            </div>
           </CardContent>
         </Card>
-        {/* Add Review Button */}
         <Button
           onClick={() => onAddReview(game.id)}
           className="w-full"
@@ -208,7 +245,6 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
           <Plus className="h-4 w-4 mr-2" />
           Add Your Review
         </Button>
-        {/* Reviews Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-medium">Reviews ({gameReviews.length})</h3>

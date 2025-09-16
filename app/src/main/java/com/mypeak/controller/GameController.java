@@ -45,8 +45,8 @@ public class GameController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public GameDTO addGame(@RequestBody AddGameRequest request) {
-        return gameService.addGame(request);
-    }
+//    @PostMapping
+//    public GameDTO addGame(@RequestBody AddGameRequest request) {
+//        return gameService.addGame(request);
+//    }
 }

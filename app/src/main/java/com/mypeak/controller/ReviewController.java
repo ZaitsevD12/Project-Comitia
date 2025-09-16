@@ -2,6 +2,7 @@ package com.mypeak.controller;
 
 import com.mypeak.dto.AddReviewRequest;
 import com.mypeak.dto.ReviewDTO;
+import com.mypeak.dto.VoteRequest;
 import com.mypeak.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,20 +18,20 @@ public class ReviewController {
     private ReviewService reviewService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReviewDTO> getReviewById(@PathVariable Long id) {
-        return reviewService.getReviewById(id)
+    public ResponseEntity<ReviewDTO> getReviewById(@PathVariable Long id, @RequestParam(required = false) Long currentUserId) {
+        return reviewService.getReviewById(id, currentUserId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/game/{gameId}")
-    public List<ReviewDTO> getReviewsByGame(@PathVariable Long gameId) {
-        return reviewService.getReviewsByGameId(gameId);
+    public List<ReviewDTO> getReviewsByGame(@PathVariable Long gameId, @RequestParam(required = false) Long currentUserId) {
+        return reviewService.getReviewsByGameId(gameId, currentUserId);
     }
 
     @GetMapping("/user/{userId}")
-    public List<ReviewDTO> getReviewsByUser(@PathVariable Long userId) {
-        return reviewService.getReviewsByUserId(userId);
+    public List<ReviewDTO> getReviewsByUser(@PathVariable Long userId, @RequestParam(required = false) Long currentUserId) {
+        return reviewService.getReviewsByUserId(userId, currentUserId);
     }
 
     @PostMapping
@@ -46,5 +47,10 @@ public class ReviewController {
     @DeleteMapping("/{id}")
     public void deleteReview(@PathVariable Long id, @RequestParam Long userId) {
         reviewService.deleteReview(id, userId);
+    }
+
+    @PostMapping("/{reviewId}/vote")
+    public void voteReview(@PathVariable Long reviewId, @RequestBody VoteRequest request) {
+        reviewService.voteReview(reviewId, request.getUserId(), request.isLike());
     }
 }

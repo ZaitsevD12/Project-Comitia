@@ -22,4 +22,8 @@ public class ReviewDTO {
     private String screenshot;
     private Boolean verified;
     private LocalDateTime createdAt;
+    private long likes;
+    private long dislikes;
+    private boolean userLiked;
+    private boolean userDisliked;
 }

@@ -1,10 +1,10 @@
+// App.tsx
 import React, { useState, useEffect } from 'react';
 import { Home, TrendingUp, User, ArrowLeft, Gamepad2 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { HomeScreen } from './components/HomeScreen';
 import { GamePage } from './components/GamePage';
 import { AddReviewForm } from './components/AddReviewForm';
-import { AddGameForm } from './components/AddGameForm';
 import { UserProfile } from './components/UserProfile';
 import { TopRatingsScreen } from './components/TopRatingsScreen';
 
@@ -18,7 +18,6 @@ export default function App() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [previousScreen, setPreviousScreen] = useState<Screen | null>(null);
 
-  // Force dark mode on component mount
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
@@ -46,12 +45,11 @@ export default function App() {
     setIsTransitioning(true);
     setPreviousScreen(currentScreen);
 
-    // Smooth transition timing - increased to match CSS animations
     setTimeout(() => {
       setCurrentScreen(newScreen);
       setIsTransitioning(false);
       setPreviousScreen(null);
-    }, 350); // Increased from 200ms to 350ms for smoother transitions
+    }, 350);
   };
 
   const navigateToGame = (gameId: string) => {
@@ -71,18 +69,13 @@ export default function App() {
     navigateWithAnimation('add-review');
   };
 
-  const navigateToAddGame = () => {
-    navigateWithAnimation('add-game');
-  };
-
   const navigateBack = () => {
-    if (currentScreen === 'game' || currentScreen === 'add-review' || currentScreen === 'add-game') {
+    if (currentScreen === 'game' || currentScreen === 'add-review') {
       navigateWithAnimation('home');
     }
   };
 
   const handleHeaderLogoClick = () => {
-    // Add haptic feedback animation to logo
     const logo = document.querySelector('.logo-container');
     if (logo) {
       logo.classList.add('animate-bounce');
@@ -91,11 +84,10 @@ export default function App() {
   };
 
   const renderHeader = () => {
-    const showBackButton = currentScreen === 'game' || currentScreen === 'add-review' || currentScreen === 'add-game';
+    const showBackButton = currentScreen === 'game' || currentScreen === 'add-review';
 
     return (
       <header className="sticky top-0 z-50 bg-card border-b border-border backdrop-blur-md">
-        {/* Desktop/Tablet wrapper */}
         <div className="w-full max-w-md mx-auto sm:max-w-lg md:max-w-xl lg:max-w-2xl">
           <div className="flex items-center h-14 px-4">
             <div className="flex items-center gap-3">
@@ -157,7 +149,6 @@ export default function App() {
     const handleNavClick = (screen: Screen) => {
       if (screen === currentScreen) return;
 
-      // Add animation to clicked tab with improved timing
       const clickedTab = document.querySelector(`[data-nav-screen="${screen}"]`);
       if (clickedTab) {
         clickedTab.classList.add('animate-bounce');
@@ -169,7 +160,6 @@ export default function App() {
 
     return (
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border backdrop-blur-md transform translate-y-0 transition-transform duration-300">
-        {/* Desktop/Tablet wrapper with responsive max-widths */}
         <div className="w-full max-w-md mx-auto sm:max-w-lg md:max-w-xl lg:max-w-2xl">
           <div className="flex items-center justify-around h-16 px-2">
             {navItems.map(({ screen, icon: Icon, label }) => {
@@ -207,14 +197,12 @@ export default function App() {
   };
 
   const renderScreen = () => {
-    // More sophisticated screen transition classes
     const screenClass = `screen-transition ${
       isTransitioning
         ? 'opacity-0 transform translate-x-4 scale-[0.98]'
         : 'opacity-100 transform translate-x-0 scale-100 animate-screen-fade-in'
     }`;
 
-    // Responsive wrapper for content with proper max-widths
     const contentWrapperClass = "w-full max-w-md mx-auto sm:max-w-lg md:max-w-xl lg:max-w-2xl";
 
     switch (currentScreen) {
@@ -222,7 +210,7 @@ export default function App() {
         return (
           <div className={screenClass}>
             <div className={contentWrapperClass}>
-              <HomeScreen onGameSelect={navigateToGame} onAddGame={navigateToAddGame} />
+              <HomeScreen onGameSelect={navigateToGame} />
             </div>
           </div>
         );
@@ -233,7 +221,7 @@ export default function App() {
               <GamePage
                 gameId={selectedGameId}
                 onAddReview={navigateToAddReview}
-                onEditReview={(reviewId) => navigateToEditReview(reviewId, selectedGameId || '')}
+                onEditReview={navigateToEditReview}
               />
             </div>
           </div>
@@ -245,17 +233,6 @@ export default function App() {
               <AddReviewForm
                 gameId={selectedGameId}
                 reviewId={selectedReviewId ? parseInt(selectedReviewId) : undefined}
-                onSubmit={() => navigateWithAnimation('home')}
-                onCancel={() => navigateWithAnimation('home')}
-              />
-            </div>
-          </div>
-        );
-      case 'add-game':
-        return (
-          <div className={screenClass}>
-            <div className={contentWrapperClass}>
-              <AddGameForm
                 onSubmit={() => navigateWithAnimation('home')}
                 onCancel={() => navigateWithAnimation('home')}
               />
@@ -282,19 +259,17 @@ export default function App() {
         return (
           <div className={screenClass}>
             <div className={contentWrapperClass}>
-              <HomeScreen onGameSelect={navigateToGame} onAddGame={navigateToAddGame} />
+              <HomeScreen onGameSelect={navigateToGame} />
             </div>
           </div>
         );
     }
   };
 
-
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       {renderHeader()}
-      
+
       <main className="pb-16 relative overflow-hidden">
         <div className="relative">
           {renderScreen()}

@@ -224,7 +224,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
   );
   return (
     <div className="p-4 space-y-6">
-      {/* Profile Header */}
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -240,13 +239,12 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
               </p>
               <div className="flex items-center gap-1 mt-1">
                 <Star className="h-3 w-3 fill-current text-yellow-400" />
-                <span className="text-xs text-muted-foreground">Gaming enthusiast since 2019</span>
+                <span className="text-xs text-muted-foreground">Gaming enthusiast since {new Date(user.createdAt).getFullYear()}</span>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
-      {/* Tabs */}
       <div className="flex rounded-lg bg-muted p-1">
         <button
           className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 ease-out btn-ios-style ${
@@ -269,7 +267,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
           Statistics
         </button>
       </div>
-      {/* Export Button */}
       {selectedTab === 'reviews' && (
         <Button
           variant="outline"
@@ -280,7 +277,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
           Export Reviews (CSV)
         </Button>
       )}
-      {/* Steam Auth Button */}
       <Card>
         <CardContent className="p-4">
           <div className="space-y-3">
@@ -318,7 +314,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
           </div>
         </CardContent>
       </Card>
-      {/* Content */}
       <div className="transition-all duration-300 ease-out">
         {selectedTab === 'reviews' ? (
           <div className="space-y-3">

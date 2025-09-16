@@ -2,9 +2,11 @@ package com.mypeak.service;
 
 import com.mypeak.dto.AddReviewRequest;
 import com.mypeak.dto.ReviewDTO;
+import com.mypeak.entity.Like;
 import com.mypeak.entity.Review;
 import com.mypeak.entity.Game;
 import com.mypeak.entity.User;
+import com.mypeak.repository.LikeRepository;
 import com.mypeak.repository.ReviewRepository;
 import com.mypeak.repository.GameRepository;
 import com.mypeak.repository.UserRepository;
@@ -24,18 +26,20 @@ public class ReviewService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private LikeRepository likeRepository;
+    @Autowired
     private GameService gameService;
 
-    public List<ReviewDTO> getReviewsByGameId(Long gameId) {
-        return reviewRepository.findByGameId(gameId).stream().map(this::toDTO).collect(Collectors.toList());
+    public List<ReviewDTO> getReviewsByGameId(Long gameId, Long currentUserId) {
+        return reviewRepository.findByGameId(gameId).stream().map(r -> toDTO(r, currentUserId)).collect(Collectors.toList());
     }
 
-    public List<ReviewDTO> getReviewsByUserId(Long userId) {
-        return reviewRepository.findByUserId(userId).stream().map(this::toDTO).collect(Collectors.toList());
+    public List<ReviewDTO> getReviewsByUserId(Long userId, Long currentUserId) {
+        return reviewRepository.findByUserId(userId).stream().map(r -> toDTO(r, currentUserId)).collect(Collectors.toList());
     }
 
-    public Optional<ReviewDTO> getReviewById(Long id) {
-        return reviewRepository.findById(id).map(this::toDTO);
+    public Optional<ReviewDTO> getReviewById(Long id, Long currentUserId) {
+        return reviewRepository.findById(id).map(r -> toDTO(r, currentUserId));
     }
 
     public ReviewDTO addReview(AddReviewRequest request) {
@@ -68,7 +72,7 @@ public class ReviewService {
         // Обновить рейтинг игры
         gameService.updateGameRating(game.getId());
 
-        return toDTO(review);
+        return toDTO(review, request.getUserId());
     }
 
     public ReviewDTO updateReview(Long id, AddReviewRequest request) {
@@ -86,7 +90,7 @@ public class ReviewService {
         review.setScreenshot(request.getScreenshot());
         review = reviewRepository.save(review);
         gameService.updateGameRating(review.getGame().getId());
-        return toDTO(review);
+        return toDTO(review, request.getUserId());
     }
 
     public void deleteReview(Long id, Long userId) {
@@ -99,7 +103,25 @@ public class ReviewService {
         gameService.updateGameRating(review.getGame().getId());
     }
 
-    private ReviewDTO toDTO(Review review) {
+    public void voteReview(Long reviewId, Long userId, boolean isLike) {
+        Optional<Like> existing = likeRepository.findByUserIdAndReviewId(userId, reviewId);
+        if (existing.isPresent()) {
+            if (existing.get().isPositive() == isLike) {
+                likeRepository.delete(existing.get());
+            } else {
+                existing.get().setPositive(isLike);
+                likeRepository.save(existing.get());
+            }
+        } else {
+            Like like = new Like();
+            like.setUser(userRepository.findById(userId).orElseThrow());
+            like.setReview(reviewRepository.findById(reviewId).orElseThrow());
+            like.setPositive(isLike);
+            likeRepository.save(like);
+        }
+    }
+
+    private ReviewDTO toDTO(Review review, Long currentUserId) {
         ReviewDTO dto = new ReviewDTO();
         dto.setId(review.getId());
         dto.setUserId(review.getUser().getId());
@@ -117,6 +139,13 @@ public class ReviewService {
         dto.setScreenshot(review.getScreenshot());
         dto.setVerified(review.getVerified());
         dto.setCreatedAt(review.getCreatedAt());
+        dto.setLikes(likeRepository.countByReviewIdAndPositive(review.getId(), true));
+        dto.setDislikes(likeRepository.countByReviewIdAndPositive(review.getId(), false));
+        if (currentUserId != null) {
+            Optional<Like> userVote = likeRepository.findByUserIdAndReviewId(currentUserId, review.getId());
+            dto.setUserLiked(userVote.isPresent() && userVote.get().isPositive());
+            dto.setUserDisliked(userVote.isPresent() && !userVote.get().isPositive());
+        }
         return dto;
     }
 }
