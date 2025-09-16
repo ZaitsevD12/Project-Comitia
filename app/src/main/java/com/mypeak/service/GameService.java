@@ -88,7 +88,14 @@ public class GameService {
         Game game = gameRepository.findById(gameId).orElseThrow();
         List<Review> reviews = game.getReviews();
         if (!reviews.isEmpty()) {
-            double avg = reviews.stream().mapToDouble(Review::getScore).average().getAsDouble();
+            double totalWeight = 0.0;
+            double weightedSum = 0.0;
+            for (Review r : reviews) {
+                double weight = 1 + (0.001 * Math.log(r.getReviewText().length() + 1)) + (0.01 * Math.sqrt(r.getHoursPlayed())) + (r.getCompleted() ? 0.5 : 0);
+                weightedSum += r.getScore() * weight;
+                totalWeight += weight;
+            }
+            double avg = weightedSum / totalWeight;
             game.setOverallRating(avg);
             game.setTotalReviews(reviews.size());
             gameRepository.save(game);

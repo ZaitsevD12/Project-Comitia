@@ -50,33 +50,33 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
           setSelectedPlatform(data.platform);
           setCompleted(data.completed);
           setRecommended(data.recommended);
-          setScreenshotPreview(data.screenshot);
-          setValidationStatus(data.verified ? 'valid' : 'none');
+          //setScreenshotPreview(data.screenshot);
+          //setValidationStatus(data.verified ? 'valid' : 'none');
         });
     }
   }, [gameId, reviewId]);
 
-  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setScreenshot(file);
-      const reader = new FileReader();
-      reader.onload = () => {
-        setScreenshotPreview(reader.result as string);
-        setIsValidating(true);
-        setTimeout(() => {
-          setIsValidating(false);
-          setValidationStatus(Math.random() > 0.3 ? 'valid' : 'invalid');
-        }, 2000);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  const removeScreenshot = () => {
-    setScreenshot(null);
-    setScreenshotPreview(null);
-    setValidationStatus('none');
-  };
+  //const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //  const file = e.target.files?.[0];
+  //  if (file) {
+  //    setScreenshot(file);
+  //    const reader = new FileReader();
+  //    reader.onload = () => {
+  //      setScreenshotPreview(reader.result as string);
+  //      setIsValidating(true);
+  //      setTimeout(() => {
+  //        setIsValidating(false);
+  //        setValidationStatus(Math.random() > 0.3 ? 'valid' : 'invalid');
+  //      }, 2000);
+  //    };
+  //    reader.readAsDataURL(file);
+  //  }
+  //};
+  //const removeScreenshot = () => {
+  //  setScreenshot(null);
+  //  setScreenshotPreview(null);
+  //  setValidationStatus('none');
+  //};
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const userId = localStorage.getItem('userId');
@@ -235,69 +235,6 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
             onCheckedChange={setRecommended}
           />
         </div>
-        {/* Screenshot Upload */}
-        <Card>
-          <CardHeader className="pb-3">
-            <Label className="text-base">Screenshot (Optional)</Label>
-            <p className="text-sm text-muted-foreground">
-              Upload a screenshot for verification and to showcase your experience
-            </p>
-          </CardHeader>
-          <CardContent>
-            {!screenshotPreview ? (
-              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
-                <Camera className="h-8 w-8 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">Tap to upload screenshot</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleScreenshotUpload}
-                  className="hidden"
-                />
-              </label>
-            ) : (
-              <div className="space-y-3">
-                <div className="relative group">
-                  <img
-                    src={screenshotPreview}
-                    alt="Screenshot preview"
-                    className="w-full h-32 object-cover rounded-lg transition-all duration-300"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 delete-button opacity-90 hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
-                    onClick={removeScreenshot}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {isValidating && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-b-transparent" />
-                    <span>Validating screenshot...</span>
-                  </div>
-                )}
-
-                {validationStatus === 'valid' && (
-                  <div className="flex items-center gap-2 text-sm text-green-600">
-                    <CheckCircle className="h-4 w-4" />
-                    <span>Screenshot verified successfully</span>
-                  </div>
-                )}
-
-                {validationStatus === 'invalid' && (
-                  <div className="flex items-center gap-2 text-sm text-red-600">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span>Screenshot validation failed - please try another image</span>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
         {/* Submit Buttons */}
         <div className="flex gap-3 pt-4">
           <Button
