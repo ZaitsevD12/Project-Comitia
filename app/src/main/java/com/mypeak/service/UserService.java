@@ -31,6 +31,7 @@ public class UserService {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());
         dto.setName(user.getName());
+        dto.setSteamId(user.getSteamId());
         dto.setAvatar(user.getAvatar());
         dto.setTotalReviews(user.getReviews() != null ? user.getReviews().size() : 0);
         dto.setAverageRating(user.getReviews() != null && !user.getReviews().isEmpty() ?

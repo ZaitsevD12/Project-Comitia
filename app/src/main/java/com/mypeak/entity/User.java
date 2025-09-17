@@ -17,6 +17,9 @@ public class User {
     @Column(name = "telegram_id", unique = true)
     private Long telegramId;
 
+    @Column(name = "steam_id")
+    private String steamId;
+
     private String avatar;
 
     @Column(updatable = false)
@@ -52,6 +55,14 @@ public class User {
 
     public void setTelegramId(Long telegramId) {
         this.telegramId = telegramId;
+    }
+
+    public String getSteamId() {
+        return steamId;
+    }
+
+    public void setSteamId(String steamId) {
+        this.steamId = steamId;
     }
 
     public String getAvatar() {

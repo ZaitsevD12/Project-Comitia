@@ -16,4 +16,5 @@ public class GameDTO {
     private Integer totalReviews;
     private Integer releaseYear;
     private String developer;
+    private Long steamAppId;
 }

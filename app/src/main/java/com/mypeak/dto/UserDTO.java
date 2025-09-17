@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class UserDTO {
     private Long id;
     private String name;
+    private String steamId;
     private String avatar;
     private Integer totalReviews;
     private Double averageRating;

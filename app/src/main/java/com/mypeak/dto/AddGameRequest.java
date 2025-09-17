@@ -13,4 +13,5 @@ public class AddGameRequest {
     private String image; // Base64 или URL, но для простоты URL
     private Integer releaseYear;
     private String developer;
+    private Long steamAppId;
 }

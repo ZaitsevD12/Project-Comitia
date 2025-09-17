@@ -1,4 +1,3 @@
-// Game.java (add indexes)
 package com.mypeak.entity;
 
 import jakarta.persistence.*;
@@ -35,6 +34,9 @@ public class Game {
     private Integer releaseYear;
 
     private String developer;
+
+    @Column(name = "steam_app_id")
+    private Long steamAppId;
 
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
     private List<Review> reviews;

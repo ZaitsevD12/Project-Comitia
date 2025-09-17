@@ -29,6 +29,8 @@ public class ReviewService {
     private LikeRepository likeRepository;
     @Autowired
     private GameService gameService;
+    @Autowired
+    private SteamService steamService;
 
     public List<ReviewDTO> getReviewsByGameId(Long gameId, Long currentUserId) {
         return reviewRepository.findByGameId(gameId).stream().map(r -> toDTO(r, currentUserId)).collect(Collectors.toList());
@@ -64,8 +66,11 @@ public class ReviewService {
         review.setCompleted(request.getCompleted());
         review.setRecommended(request.getRecommended());
         review.setScreenshot(request.getScreenshot());
-        // TODO: В реале добавить верификацию (например, OCR или Steam API)
-        review.setVerified(false);
+        if ("PC".equals(review.getPlatform()) && game.getSteamAppId() != null && user.getSteamId() != null) {
+            review.setVerified(steamService.userOwnsGame(user.getSteamId(), game.getSteamAppId()));
+        } else {
+            review.setVerified(false);
+        }
 
         review = reviewRepository.save(review);
 
@@ -88,6 +93,11 @@ public class ReviewService {
         review.setCompleted(request.getCompleted());
         review.setRecommended(request.getRecommended());
         review.setScreenshot(request.getScreenshot());
+        if ("PC".equals(review.getPlatform()) && review.getGame().getSteamAppId() != null && review.getUser().getSteamId() != null) {
+            review.setVerified(steamService.userOwnsGame(review.getUser().getSteamId(), review.getGame().getSteamAppId()));
+        } else {
+            review.setVerified(false);
+        }
         review = reviewRepository.save(review);
         gameService.updateGameRating(review.getGame().getId());
         return toDTO(review, request.getUserId());

@@ -80,6 +80,7 @@ public class GameService {
         game.setImage(request.getImage());
         game.setReleaseYear(request.getReleaseYear());
         game.setDeveloper(request.getDeveloper());
+        game.setSteamAppId(request.getSteamAppId());
         game = gameRepository.save(game);
         return toDTO(game);
     }
@@ -92,6 +93,7 @@ public class GameService {
             double weightedSum = 0.0;
             for (Review r : reviews) {
                 double weight = 1 + (0.001 * Math.log(r.getReviewText().length() + 1)) + (0.01 * Math.sqrt(r.getHoursPlayed())) + (r.getCompleted() ? 0.5 : 0);
+                if (r.getVerified()) weight *= 10;
                 weightedSum += r.getScore() * weight;
                 totalWeight += weight;
             }
@@ -114,6 +116,7 @@ public class GameService {
         dto.setTotalReviews(game.getTotalReviews());
         dto.setReleaseYear(game.getReleaseYear());
         dto.setDeveloper(game.getDeveloper());
+        dto.setSteamAppId(game.getSteamAppId());
         return dto;
     }
 

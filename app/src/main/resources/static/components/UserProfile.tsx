@@ -29,7 +29,10 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
   const fetchUserAndReviews = () => {
     const userId = localStorage.getItem('userId');
     if (!userId) return;
-    fetch(`/api/users/${userId}`).then(res => res.json()).then(setUser);
+    fetch(`/api/users/${userId}`).then(res => res.json()).then(data => {
+      setUser(data);
+      setIsSteamConnected(!!data.steamId);
+    });
     fetch(`/api/reviews/user/${userId}`).then(res => res.json()).then(setReviews);
   };
 
@@ -71,7 +74,16 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
     window.URL.revokeObjectURL(url);
   };
   const handleSteamAuth = () => {
-    setIsSteamConnected(!isSteamConnected);
+    const userId = localStorage.getItem('userId');
+    if (isSteamConnected) {
+      fetch(`/api/steam/disconnect?userId=${userId}`, { method: 'POST' }).then(() => {
+        setIsSteamConnected(false);
+      });
+    } else {
+      fetch(`/api/steam/auth-url?userId=${userId}`).then(res => res.text()).then(url => {
+        window.location.href = url;
+      });
+    }
   };
   const handleEditReview = (id) => {
     setEditingReviewId(id);
