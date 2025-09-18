@@ -13,6 +13,7 @@ import com.mypeak.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -55,6 +56,19 @@ public class ReviewService {
 
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
         Game game = gameRepository.findById(request.getGameId()).orElseThrow(() -> new RuntimeException("Game not found with id: " + request.getGameId()));
+
+        // Check if game is released
+        boolean isReleased;
+        if (game.getSteamAppId() != null) {
+            isReleased = steamService.isGameReleased(game.getSteamAppId());
+        } else if (game.getReleaseDate() != null) {
+            isReleased = !LocalDate.now().isBefore(game.getReleaseDate());
+        } else {
+            isReleased = true; // If no info, allow
+        }
+        if (!isReleased) {
+            throw new RuntimeException("Game not released yet");
+        }
 
         Review review = new Review();
         review.setUser(user);

@@ -1,4 +1,3 @@
-// GameService.java
 package com.mypeak.service;
 
 import com.mypeak.dto.AddGameRequest;
@@ -8,13 +7,11 @@ import com.mypeak.entity.Review;
 import com.mypeak.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class GameService {
@@ -59,8 +56,10 @@ public class GameService {
         LocalDate now = LocalDate.now();
         games = games.stream()
                 .sorted((a, b) -> {
-                    double scoreA = a.getTotalReviews() / (ChronoUnit.YEARS.between(LocalDate.of(a.getReleaseYear(), 1, 1), now) + 1);
-                    double scoreB = b.getTotalReviews() / (ChronoUnit.YEARS.between(LocalDate.of(b.getReleaseYear(), 1, 1), now) + 1);
+                    LocalDate releaseA = a.getReleaseDate() != null ? a.getReleaseDate() : now;
+                    LocalDate releaseB = b.getReleaseDate() != null ? b.getReleaseDate() : now;
+                    double scoreA = a.getTotalReviews() / (ChronoUnit.YEARS.between(LocalDate.of(releaseA.getYear(), 1, 1), now) + 1);
+                    double scoreB = b.getTotalReviews() / (ChronoUnit.YEARS.between(LocalDate.of(releaseB.getYear(), 1, 1), now) + 1);
                     return Double.compare(scoreB, scoreA);
                 })
                 .collect(Collectors.toList());
@@ -78,7 +77,7 @@ public class GameService {
         game.setGenre(request.getGenre());
         game.setPlatforms(request.getPlatforms());
         game.setImage(request.getImage());
-        game.setReleaseYear(request.getReleaseYear());
+        game.setReleaseDate(request.getReleaseDate());
         game.setDeveloper(request.getDeveloper());
         game.setSteamAppId(request.getSteamAppId());
         game = gameRepository.save(game);
@@ -114,13 +113,9 @@ public class GameService {
         dto.setImage(game.getImage());
         dto.setOverallRating(game.getOverallRating());
         dto.setTotalReviews(game.getTotalReviews());
-        dto.setReleaseYear(game.getReleaseYear());
+        dto.setReleaseDate(game.getReleaseDate());
         dto.setDeveloper(game.getDeveloper());
         dto.setSteamAppId(game.getSteamAppId());
         return dto;
     }
-
-//    public CompletableFuture<GameDTO> addGameAsync(AddGameRequest request) {
-//        return CompletableFuture.supplyAsync(() -> addGame(request));
-//    }
 }

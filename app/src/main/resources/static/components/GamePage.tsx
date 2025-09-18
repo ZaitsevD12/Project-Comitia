@@ -12,11 +12,13 @@ import { MetacriticRating } from './MetacriticRating';
 import { LikeDislikeButton } from './LikeDislikeButton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { SortOption } from '../types';
+
 interface GamePageProps {
   gameId: string | null;
   onAddReview: (gameId: string) => void;
   onEditReview: (reviewId: string, gameId: string) => void;
 }
+
 export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [game, setGame] = useState(null);
@@ -58,6 +60,9 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
       </div>
     );
   }
+
+  const isReleased = game.releaseDate ? new Date() >= new Date(game.releaseDate) : true;
+
   const sortedReviews = [...gameReviews].sort((a, b) => {
     switch (sortBy) {
       case 'score':
@@ -70,6 +75,7 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
         return 0;
     }
   });
+
   const excellentCount = gameReviews.filter(r => r.score >= 75).length;
   const goodCount = gameReviews.filter(r => r.score >= 50 && r.score < 75).length;
   const mixedCount = gameReviews.filter(r => r.score >= 20 && r.score < 50).length;
@@ -79,6 +85,7 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
   const goodPercent = total > 0 ? Math.round((goodCount / total) * 100) : 0;
   const mixedPercent = total > 0 ? Math.round((mixedCount / total) * 100) : 0;
   const badPercent = total > 0 ? Math.round((badCount / total) * 100) : 0;
+
   const renderReview = (review: any) => (
     <Card key={review.id} className="animate-slide-up">
       <CardContent className="p-4 space-y-3">
@@ -108,7 +115,6 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
               </div>
             </div>
           </div>
-
           <div className="flex items-center gap-2 flex-shrink-0">
             <MetacriticRating
               score={review.score}
@@ -140,9 +146,7 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
             )}
           </div>
         </div>
-
         <p className="text-sm leading-relaxed">{review.reviewText}</p>
-
         {review.screenshot && (
           <div className="mt-3">
             <ImageWithFallback
@@ -152,7 +156,6 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
             />
           </div>
         )}
-
         <div className="flex justify-between items-center pt-2">
           <span className="text-xs text-muted-foreground">
             {new Date(review.createdAt).toLocaleDateString()}
@@ -172,6 +175,7 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
       </CardContent>
     </Card>
   );
+
   return (
     <div className="space-y-6">
       <div className="relative">
@@ -241,10 +245,14 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
           onClick={() => onAddReview(game.id)}
           className="w-full"
           size="lg"
+          disabled={!isReleased}
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Your Review
         </Button>
+        {!isReleased && (
+          <p className="text-sm text-muted-foreground text-center mt-2">Reviews available after release on {game.releaseDate}</p>
+        )}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-medium">Reviews ({gameReviews.length})</h3>

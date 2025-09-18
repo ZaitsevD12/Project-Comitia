@@ -11,10 +11,12 @@ import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
 import { genres, platforms } from '../data/mockData';
 import { Genre, Platform } from '../types';
+
 interface AddGameFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
+
 export function AddGameForm({ onSubmit, onCancel }: AddGameFormProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -22,10 +24,11 @@ export function AddGameForm({ onSubmit, onCancel }: AddGameFormProps) {
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
-  const [releaseYear, setReleaseYear] = useState('');
+  const [releaseDate, setReleaseDate] = useState('');
   const [developer, setDeveloper] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+
   const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -37,10 +40,12 @@ export function AddGameForm({ onSubmit, onCancel }: AddGameFormProps) {
       reader.readAsDataURL(file);
     }
   };
+
   const removeCoverImage = () => {
     setCoverImage(null);
     setCoverImagePreview(null);
   };
+
   const handlePlatformToggle = (platform: Platform, checked: boolean) => {
     if (checked) {
       setSelectedPlatforms(prev => [...prev, platform]);
@@ -48,6 +53,7 @@ export function AddGameForm({ onSubmit, onCancel }: AddGameFormProps) {
       setSelectedPlatforms(prev => prev.filter(p => p !== platform));
     }
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -56,20 +62,22 @@ export function AddGameForm({ onSubmit, onCancel }: AddGameFormProps) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title, description, genre: selectedGenre, platforms: selectedPlatforms,
-        image: coverImagePreview, releaseYear: parseInt(releaseYear), developer
+        image: coverImagePreview, releaseDate, developer
       })
     });
     setIsSubmitting(false);
     setShowSuccessAlert(true);
     setTimeout(onSubmit, 1500);
   };
+
   const isFormValid =
     title.trim().length > 0 &&
     description.trim().length > 10 &&
     selectedGenre &&
     selectedPlatforms.length > 0 &&
-    releaseYear &&
+    releaseDate &&
     developer.trim().length > 0;
+
   return (
     <div className="p-4 space-y-6">
       <div className="text-center">
@@ -154,17 +162,14 @@ export function AddGameForm({ onSubmit, onCancel }: AddGameFormProps) {
             onChange={(e) => setDeveloper(e.target.value)}
           />
         </div>
-        {/* Release Year */}
+        {/* Release Date */}
         <div className="space-y-2">
-          <Label htmlFor="release-year">Release Year *</Label>
+          <Label htmlFor="release-date">Release Date *</Label>
           <Input
-            id="release-year"
-            type="number"
-            placeholder="2024"
-            value={releaseYear}
-            onChange={(e) => setReleaseYear(e.target.value)}
-            min="1970"
-            max={new Date().getFullYear() + 2}
+            id="release-date"
+            type="date"
+            value={releaseDate}
+            onChange={(e) => setReleaseDate(e.target.value)}
           />
         </div>
         {/* Genre */}
@@ -202,7 +207,6 @@ export function AddGameForm({ onSubmit, onCancel }: AddGameFormProps) {
                 </Label>
               </div>
             ))}
-
             {selectedPlatforms.length > 0 && (
               <div className="flex flex-wrap gap-1 pt-2 border-t border-border">
                 {selectedPlatforms.map(platform => (

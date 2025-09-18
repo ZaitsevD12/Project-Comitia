@@ -21,7 +21,7 @@ export function HomeScreen({ onGameSelect }: HomeScreenProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<Genre | 'All'>('All');
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | 'All'>('All');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('popular');
   const [loading, setLoading] = useState(false);
   const [fetchedQueries, setFetchedQueries] = useState(new Set());
 
@@ -166,21 +166,21 @@ export function HomeScreen({ onGameSelect }: HomeScreenProps) {
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">All Games</TabsTrigger>
-          <TabsTrigger value="top-rated">Top Rated</TabsTrigger>
           <TabsTrigger value="popular">Popular</TabsTrigger>
+          <TabsTrigger value="top-rated">Top Rated</TabsTrigger>
+          <TabsTrigger value="all">All Games</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="mt-4 sm:mt-6">
-          {renderGameGrid(filteredGames, "No games found matching your criteria")}
+        <TabsContent value="popular" className="mt-4 sm:mt-6">
+          {renderGameGrid(popularGames, "No popular games found")}
         </TabsContent>
 
         <TabsContent value="top-rated" className="mt-4 sm:mt-6">
           {renderGameGrid(topRatedGames, "No top-rated games found")}
         </TabsContent>
 
-        <TabsContent value="popular" className="mt-4 sm:mt-6">
-          {renderGameGrid(popularGames.slice(0, 6), "No popular games found")}
+        <TabsContent value="all" className="mt-4 sm:mt-6">
+          {renderGameGrid(filteredGames, "No games found matching your criteria")}
         </TabsContent>
       </Tabs>
     </div>

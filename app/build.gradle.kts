@@ -27,6 +27,10 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.hibernate.orm:hibernate-community-dialects:6.5.2.Final")
+    implementation("org.telegram:telegrambots-spring-boot-starter:6.9.7.1")
+    implementation("javax.xml.bind:jaxb-api:2.3.1")
+    implementation("org.glassfish.jaxb:jaxb-runtime:2.3.1")
+
 }
 
 tasks.withType<Test> {

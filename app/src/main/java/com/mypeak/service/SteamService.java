@@ -16,12 +16,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 @Service
 public class SteamService {
@@ -33,16 +35,12 @@ public class SteamService {
     private UserRepository userRepository;
     @Autowired
     private ReviewRepository reviewRepository;
-
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
-
     @Value("${app.public.url}")
     private String publicUrl;
-
     @Value("${steam.api.key}")
     private String apiKey;
-
     private static final ConcurrentHashMap<String, Long> stateMap = new ConcurrentHashMap<>();
 
     public void searchAndAddIfNotExist(String query) {
@@ -57,30 +55,27 @@ public class SteamService {
                     String title = item.path("name").asText();
                     if (title.toLowerCase().contains(query.toLowerCase()) && !addedTitles.contains(title)) {
                         if (gameRepository.existsByTitle(title)) continue;
-
                         long appId = item.path("id").asLong();
                         String detailsUrl = "https://store.steampowered.com/api/appdetails?appids=" + appId;
                         String detailsResponse = restTemplate.getForObject(detailsUrl, String.class);
                         JsonNode detailsRoot = objectMapper.readTree(detailsResponse);
                         JsonNode gameData = detailsRoot.path(String.valueOf(appId)).path("data");
-
                         AddGameRequest request = new AddGameRequest();
                         request.setTitle(title);
                         request.setDescription(gameData.path("short_description").asText());
                         request.setDeveloper(gameData.path("developers").get(0).asText());
-                        String releaseDate = gameData.path("release_date").path("date").asText();
-                        request.setReleaseYear(releaseDate.isEmpty() ? null : Integer.parseInt(releaseDate.split(" ")[2]));
+                        String releaseDateStr = gameData.path("release_date").path("date").asText();
+                        LocalDate releaseDate = parseReleaseDate(releaseDateStr);
+                        request.setReleaseDate(releaseDate);
                         request.setImage("https://cdn.akamai.steamstatic.com/steam/apps/" + appId + "/header.jpg");
                         request.setGenre(gameData.path("genres").get(0).path("description").asText());
                         request.setSteamAppId(appId);
-
                         List<String> platforms = new ArrayList<>();
                         JsonNode platformsNode = gameData.path("platforms");
                         if (platformsNode.path("windows").asBoolean()) platforms.add("PC");
                         if (platformsNode.path("mac").asBoolean()) platforms.add("Mac");
                         if (platformsNode.path("linux").asBoolean()) platforms.add("Linux");
                         request.setPlatforms(platforms);
-
                         gameService.addGame(request);
                         addedTitles.add(title);
                     }
@@ -89,6 +84,25 @@ public class SteamService {
         } catch (Exception e) {
             // Log error
         }
+    }
+
+    private LocalDate parseReleaseDate(String dateStr) {
+        if (dateStr == null || dateStr.isEmpty() || dateStr.equalsIgnoreCase("coming soon")) {
+            return null;
+        }
+        List<DateTimeFormatter> formatters = Arrays.asList(
+                DateTimeFormatter.ofPattern("d MMM, yyyy").withLocale(Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("MMM d, yyyy").withLocale(Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("yyyy")
+        );
+        for (DateTimeFormatter formatter : formatters) {
+            try {
+                return LocalDate.parse(dateStr, formatter);
+            } catch (DateTimeParseException e) {
+                // Try next
+            }
+        }
+        return null; // If cannot parse
     }
 
     public String getAuthUrl(Long userId) {
@@ -122,7 +136,6 @@ public class SteamService {
         if (userId == null) return publicUrl + "/error";
         String claimedId = params.get("openid.claimed_id");
         if (claimedId == null || !claimedId.startsWith("https://steamcommunity.com/openid/id/")) return publicUrl + "/error";
-
         // Validation commented out for testing
         /*
         Map<String, String> valParams = new HashMap<>();
@@ -145,7 +158,6 @@ public class SteamService {
             return publicUrl + "/error";
         }
         */
-
         String steamId = claimedId.replace("https://steamcommunity.com/openid/id/", "");
         User user = userRepository.findById(userId).orElse(null);
         if (user != null) {
@@ -163,7 +175,7 @@ public class SteamService {
                 }
             }
         }
-        return "https://8d30fc34a131.ngrok-free.app/";
+        return "https://8c35d0b568d6.ngrok-free.app/";
     }
 
     public boolean userOwnsGame(String steamId, Long appId) {
@@ -180,6 +192,18 @@ public class SteamService {
             return false;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    public boolean isGameReleased(Long appId) {
+        if (appId == null) return true;
+        String url = "https://store.steampowered.com/api/appdetails?appids=" + appId;
+        try {
+            JsonNode root = objectMapper.readTree(restTemplate.getForObject(url, String.class));
+            JsonNode gameData = root.path(appId.toString()).path("data");
+            return !gameData.path("release_date").path("coming_soon").asBoolean(true);
+        } catch (Exception e) {
+            return true; // Fallback if API fails
         }
     }
 }
