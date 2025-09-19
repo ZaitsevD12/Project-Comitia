@@ -1,6 +1,5 @@
-// App.tsx
 import React, { useState, useEffect } from 'react';
-import { Home, TrendingUp, User, ArrowLeft, Gamepad2 } from 'lucide-react';
+import { Home, TrendingUp, User, ArrowLeft, Gamepad2, Heart } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { HomeScreen } from './components/HomeScreen';
 import { GamePage } from './components/GamePage';
@@ -115,6 +114,14 @@ export default function App() {
                 </div>
               </div>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="ml-auto h-9 w-9 hover:bg-accent/50 transition-all duration-300"
+              onClick={() => window.open('https://hipolink.net/mypeak/tips', '_blank')}
+            >
+              <Heart className="h-5 w-5 text-red-500 animate-pulse" />
+            </Button>
           </div>
         </div>
       </header>
@@ -275,7 +282,7 @@ export default function App() {
           {renderScreen()}
         </div>
       </main>
-      
+
       {renderBottomNav()}
     </div>
   );

@@ -1,7 +1,6 @@
-// HomeScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { debounce } from 'lodash';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Heart } from 'lucide-react';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -9,6 +8,7 @@ import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { MetacriticRating } from './MetacriticRating';
+import { Button } from './ui/button';
 import { genres, platforms } from '../data/mockData';
 import { Genre, Platform } from '../types';
 
@@ -183,6 +183,13 @@ export function HomeScreen({ onGameSelect }: HomeScreenProps) {
           {renderGameGrid(filteredGames, "No games found matching your criteria")}
         </TabsContent>
       </Tabs>
+      <Button
+        variant="secondary"
+        className="w-full hover:bg-primary/10 hover:shadow-md transition-all duration-300"
+        onClick={() => window.open('https://hipolink.net/mypeak/tips', '_blank')}
+      >
+        <Heart className="mr-2 h-4 w-4 text-red-500 animate-pulse" /> Support MyPeak
+      </Button>
     </div>
   );
 }

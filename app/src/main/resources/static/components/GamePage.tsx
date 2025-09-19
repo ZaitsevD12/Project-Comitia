@@ -1,4 +1,3 @@
-// GamePage.tsx
 import React, { useState, useEffect } from 'react';
 import { Star, ThumbsUp, ThumbsDown, Clock, Monitor, CheckCircle, Plus, Filter, MoreVertical, Edit } from 'lucide-react';
 import { Button } from './ui/button';
@@ -85,6 +84,11 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
   const goodPercent = total > 0 ? Math.round((goodCount / total) * 100) : 0;
   const mixedPercent = total > 0 ? Math.round((mixedCount / total) * 100) : 0;
   const badPercent = total > 0 ? Math.round((badCount / total) * 100) : 0;
+  const verifiedCount = gameReviews.filter(r => r.verified).length;
+  const verifiedPercent = total > 0 ? Math.round((verifiedCount / total) * 100) : 0;
+  const unverifiedPercent = 100 - verifiedPercent;
+  const dominantPercent = Math.max(verifiedPercent, unverifiedPercent);
+  const dominantSide = verifiedPercent > unverifiedPercent ? 'Verified' : 'Unverified';
 
   const renderReview = (review: any) => (
     <Card key={review.id} className="animate-slide-up">
@@ -238,6 +242,19 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
                 <span className="text-muted-foreground">{badCount} Ratings</span>
               </div>
               <Progress value={badPercent} className="h-2 [&>div]:bg-red-600" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-blue-700 font-medium">Verified {verifiedPercent}%</span>
+                <span className="text-gray-500 font-medium">Unverified {unverifiedPercent}%</span>
+              </div>
+              <div className="flex h-2 overflow-hidden rounded-full bg-gray-200">
+                <div style={{width: `${verifiedPercent}%`}} className="bg-blue-700"></div>
+                <div style={{width: `${unverifiedPercent}%`}} className="bg-gray-500"></div>
+              </div>
+              <div className="text-center text-sm text-muted-foreground">
+                {dominantSide} {dominantPercent}%
+              </div>
             </div>
           </CardContent>
         </Card>
