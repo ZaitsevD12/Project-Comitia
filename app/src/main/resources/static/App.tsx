@@ -139,17 +139,17 @@ export default function App() {
       {
         screen: 'home' as Screen,
         icon: Home,
-        label: 'Главная',
+        label: 'Home',
       },
       {
         screen: 'top-ratings' as Screen,
         icon: TrendingUp,
-        label: 'Рейтинги',
+        label: 'Ratings',
       },
       {
         screen: 'profile' as Screen,
         icon: User,
-        label: 'Профиль',
+        label: 'Profile',
       }
     ];
 
