@@ -10,34 +10,31 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { MetacriticRating } from './MetacriticRating';
 import { SteamIcon } from './SteamIcon';
 import { AddReviewForm } from './AddReviewForm';
-
 interface UserProfileProps {
   onGameSelect: (gameId: string) => void;
 }
-
 export function UserProfile({ onGameSelect }: UserProfileProps) {
   const [selectedTab, setSelectedTab] = useState<'reviews' | 'stats'>('reviews');
   const [isSteamConnected, setIsSteamConnected] = useState(false);
   const [user, setUser] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [editingReviewId, setEditingReviewId] = useState(null);
-
   useEffect(() => {
     fetchUserAndReviews();
   }, []);
-
   const fetchUserAndReviews = () => {
     const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
     if (!userId) return;
-    fetch(`/api/users/${userId}`).then(res => res.json()).then(data => {
+    fetch(`/api/users/${userId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).then(res => res.json()).then(data => {
       setUser(data);
       setIsSteamConnected(!!data.steamId);
     });
     fetch(`/api/reviews/user/${userId}`).then(res => res.json()).then(setReviews);
   };
-
   if (!user) return <div className="p-4 text-center">Loading...</div>;
-
   if (editingReviewId) {
     return <AddReviewForm
       gameId={reviews.find(r => r.id === editingReviewId).gameId}
@@ -49,7 +46,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
       onCancel={() => setEditingReviewId(null)}
     />;
   }
-
   const reviewedGames = reviews.map(review => ({ ...review, game: { id: review.gameId, title: review.gameTitle, image: review.gameImage } }));
   const stats = {
     totalReviews: reviews.length,
@@ -75,12 +71,18 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
   };
   const handleSteamAuth = () => {
     const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
     if (isSteamConnected) {
-      fetch(`/api/steam/disconnect?userId=${userId}`, { method: 'POST' }).then(() => {
+      fetch(`/api/steam/disconnect?userId=${userId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(() => {
         setIsSteamConnected(false);
       });
     } else {
-      fetch(`/api/steam/auth-url?userId=${userId}`).then(res => res.text()).then(url => {
+      fetch(`/api/steam/auth-url?userId=${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(res => res.text()).then(url => {
         window.location.href = url;
       });
     }
@@ -90,7 +92,11 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
   };
   const handleDeleteReview = (id) => {
     const userId = localStorage.getItem('userId');
-    fetch(`/api/reviews/${id}?userId=${userId}`, { method: 'DELETE' }).then(fetchUserAndReviews);
+    const token = localStorage.getItem('token');
+    fetch(`/api/reviews/${id}?userId=${userId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).then(fetchUserAndReviews);
   };
   const renderReviewCard = (reviewWithGame: any) => {
     const { game, score, reviewText, hoursPlayed, platform, completed, recommended, verified, createdAt, id } = reviewWithGame;
@@ -104,7 +110,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
               className="w-16 h-16 object-cover rounded-lg cursor-pointer btn-ios-style hover:shadow-md"
               onClick={() => onGameSelect(game.id)}
             />
-
             <div className="flex-1 space-y-2">
               <div className="flex items-start justify-between">
                 <div>
@@ -126,7 +131,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
                     )}
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <MetacriticRating
                     score={score}
@@ -135,7 +139,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
                     showScore={false}
                   />
                   {verified && <CheckCircle className="h-3 w-3 text-primary" />}
-
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-6 w-6 btn-ios-style">
@@ -154,9 +157,7 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
                   </DropdownMenu>
                 </div>
               </div>
-
               <p className="text-sm text-muted-foreground line-clamp-2">{reviewText}</p>
-
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{new Date(createdAt).toLocaleDateString()}</span>
                 <div className="flex items-center gap-1">
@@ -183,7 +184,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
             <div className="text-xs sm:text-sm text-muted-foreground leading-tight">Total Reviews</div>
           </div>
         </Card>
-
         <Card className="border">
           <div className="p-3 sm:p-4 h-20 sm:h-24 flex flex-col items-center justify-center text-center space-y-1">
             <div className="flex justify-center items-center mb-1">
@@ -200,14 +200,12 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
             </div>
           </div>
         </Card>
-
         <Card className="border">
           <div className="p-3 sm:p-4 h-20 sm:h-24 flex flex-col items-center justify-center text-center space-y-1">
             <div className="text-xl sm:text-2xl font-bold text-primary leading-none">{stats.totalHours}</div>
             <div className="text-xs sm:text-sm text-muted-foreground leading-tight">Hours Played</div>
           </div>
         </Card>
-
         <Card className="border">
           <div className="p-3 sm:p-4 h-20 sm:h-24 flex flex-col items-center justify-center text-center space-y-1">
             <div className="text-xl sm:text-2xl font-bold text-green-600 leading-none">{stats.completedGames}</div>
@@ -215,7 +213,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
           </div>
         </Card>
       </div>
-
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
@@ -243,7 +240,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
               <AvatarImage src={user.avatar} alt={user.name} />
               <AvatarFallback>{user.name[0]}</AvatarFallback>
             </Avatar>
-
             <div className="flex-1">
               <h2 className="text-lg font-medium">{user.name}</h2>
               <p className="text-sm text-muted-foreground">
@@ -305,7 +301,6 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
                 </Badge>
               )}
             </div>
-
             <Button
               variant={isSteamConnected ? "secondary" : "outline"}
               onClick={handleSteamAuth}

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "https://62a47138bf11.ngrok-free.app")
 @RestController
 @RequestMapping("/api/games")
 public class GameController {
@@ -44,9 +44,4 @@ public class GameController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
-//    @PostMapping
-//    public GameDTO addGame(@RequestBody AddGameRequest request) {
-//        return gameService.addGame(request);
-//    }
 }

@@ -11,47 +11,45 @@ import { MetacriticRating } from './MetacriticRating';
 import { LikeDislikeButton } from './LikeDislikeButton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { SortOption } from '../types';
-
 interface GamePageProps {
   gameId: string | null;
   onAddReview: (gameId: string) => void;
   onEditReview: (reviewId: string, gameId: string) => void;
 }
-
 export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [game, setGame] = useState(null);
   const [gameReviews, setGameReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     if (gameId) {
       setIsLoading(true);
-      fetch(`/api/games/${gameId}`).then(res => res.json()).then(data => {
+      fetch(`/api/games/${gameId}`, { cache: 'no-store' }).then(res => res.json()).then(data => {
         setGame(data);
         setIsLoading(false);
       });
       refreshReviews();
     }
   }, [gameId]);
-
   const refreshReviews = () => {
     const userId = localStorage.getItem('userId');
-    fetch(`/api/reviews/game/${gameId}${userId ? `?currentUserId=${userId}` : ''}`).then(res => res.json()).then(setGameReviews);
+    fetch(`/api/reviews/game/${gameId}${userId ? `?currentUserId=${userId}` : ''}`, { cache: 'no-store' }).then(res => res.json()).then(setGameReviews);
   };
-
   const handleDelete = (id: number) => {
     const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
     if (!userId) return;
-    fetch(`/api/reviews/${id}?userId=${userId}`, { method: 'DELETE' }).then(() => {
+    fetch(`/api/reviews/${id}?userId=${userId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).then(() => {
       setGameReviews(prev => prev.filter(r => r.id !== id));
+      fetch(`/api/games/${gameId}`, { cache: 'no-store' }).then(res => res.json()).then(setGame);
     });
   };
-
   if (isLoading) {
     return <div className="p-4 text-center">Loading...</div>;
   }
-
   if (!gameId || !game) {
     return (
       <div className="p-4 text-center">
@@ -59,9 +57,7 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
       </div>
     );
   }
-
   const isReleased = game.releaseDate ? new Date() >= new Date(game.releaseDate) : true;
-
   const sortedReviews = [...gameReviews].sort((a, b) => {
     switch (sortBy) {
       case 'score':
@@ -74,7 +70,6 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
         return 0;
     }
   });
-
   const excellentCount = gameReviews.filter(r => r.score >= 75).length;
   const goodCount = gameReviews.filter(r => r.score >= 50 && r.score < 75).length;
   const mixedCount = gameReviews.filter(r => r.score >= 20 && r.score < 50).length;
@@ -89,7 +84,6 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
   const unverifiedPercent = 100 - verifiedPercent;
   const dominantPercent = Math.max(verifiedPercent, unverifiedPercent);
   const dominantSide = verifiedPercent > unverifiedPercent ? 'Verified' : 'Unverified';
-
   const renderReview = (review: any) => (
     <Card key={review.id} className="animate-slide-up">
       <CardContent className="p-4 space-y-3">
@@ -179,7 +173,6 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
       </CardContent>
     </Card>
   );
-
   return (
     <div className="space-y-6">
       <div className="relative">

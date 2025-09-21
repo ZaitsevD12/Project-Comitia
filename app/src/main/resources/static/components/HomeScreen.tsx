@@ -31,7 +31,7 @@ export function HomeScreen({ onGameSelect }: HomeScreenProps) {
     if (searchQuery) params.append('search', searchQuery);
     if (selectedGenre !== 'All') params.append('genre', selectedGenre);
     if (selectedPlatform !== 'All') params.append('platform', selectedPlatform);
-    fetch(`/api/games?${params}`)
+    fetch(`/api/games?${params}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         setGames(data);
@@ -39,7 +39,7 @@ export function HomeScreen({ onGameSelect }: HomeScreenProps) {
           setFetchedQueries(new Set([...fetchedQueries, searchQuery]));
           fetch(`/api/steam/search?query=${searchQuery}`)
             .then(() => {
-              fetch(`/api/games?search=${searchQuery}`)
+              fetch(`/api/games?search=${searchQuery}`, { cache: 'no-store' })
                 .then(res => res.json())
                 .then(setGames);
             })
@@ -82,7 +82,6 @@ export function HomeScreen({ onGameSelect }: HomeScreenProps) {
             />
           </div>
         </div>
-
         <div className="p-3 space-y-2">
           <h3 className="font-medium text-sm leading-tight min-h-[2.5rem] flex items-start">
             <span className="line-clamp-2">{game.title}</span>

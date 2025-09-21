@@ -67,7 +67,7 @@ public class SteamService {
                         String releaseDateStr = gameData.path("release_date").path("date").asText();
                         LocalDate releaseDate = parseReleaseDate(releaseDateStr);
                         request.setReleaseDate(releaseDate);
-                        request.setImage("https://cdn.akamai.steamstatic.com/steam/apps/" + appId + "/header.jpg");
+                        request.setImage(gameData.path("header_image").asText());
                         request.setGenre(gameData.path("genres").get(0).path("description").asText());
                         request.setSteamAppId(appId);
                         List<String> platforms = new ArrayList<>();
@@ -136,8 +136,6 @@ public class SteamService {
         if (userId == null) return publicUrl + "/error";
         String claimedId = params.get("openid.claimed_id");
         if (claimedId == null || !claimedId.startsWith("https://steamcommunity.com/openid/id/")) return publicUrl + "/error";
-        // Validation commented out for testing
-        /*
         Map<String, String> valParams = new HashMap<>();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             if (entry.getKey().startsWith("openid.")) {
@@ -157,13 +155,11 @@ public class SteamService {
         } catch (Exception e) {
             return publicUrl + "/error";
         }
-        */
         String steamId = claimedId.replace("https://steamcommunity.com/openid/id/", "");
         User user = userRepository.findById(userId).orElse(null);
         if (user != null) {
             user.setSteamId(steamId);
             userRepository.save(user);
-            // Re-verify reviews
             List<Review> userReviews = reviewRepository.findByUserId(user.getId());
             for (Review review : userReviews) {
                 if ("PC".equals(review.getPlatform()) && review.getGame().getSteamAppId() != null) {
@@ -175,7 +171,7 @@ public class SteamService {
                 }
             }
         }
-        return "https://8c35d0b568d6.ngrok-free.app/";
+        return "https://62a47138bf11.ngrok-free.app/";
     }
 
     public boolean userOwnsGame(String steamId, Long appId) {

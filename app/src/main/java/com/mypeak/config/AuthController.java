@@ -1,5 +1,4 @@
 package com.mypeak.config;
-
 import com.mypeak.entity.User;
 import com.mypeak.repository.UserRepository;
 import com.mypeak.service.UserService;
@@ -15,27 +14,35 @@ import java.util.Arrays;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
-
-@CrossOrigin(origins = "*") // Для теста
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import java.util.Date;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.Base64;
+import io.jsonwebtoken.security.Keys;
+@CrossOrigin(origins = "https://9a8015c3e1e6.ngrok-free.app")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     @Value("${telegram.bot.token}")
     private String botToken;
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+    @Value("${jwt.expiration}")
+    private long jwtExpirationMs;
     @Autowired
     private UserService userService;
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private ObjectMapper objectMapper;
-
+    @Transactional
     @PostMapping("/telegram")
     public Map<String, Object> authTelegram(@RequestBody Map<String, String> body) {
         String initData = body.get("initData");
         if (validateInitData(initData)) {
             Map<String, String> data = parseInitData(initData);
             Long tgId = Long.parseLong(data.get("user_id"));
-            // Найти или создать пользователя
             User user = userService.findByTelegramId(tgId).orElseGet(() -> {
                 User newUser = new User();
                 newUser.setTelegramId(tgId);
@@ -43,22 +50,26 @@ public class AuthController {
                 newUser.setAvatar(data.getOrDefault("photo_url", ""));
                 try {
                     return userRepository.save(newUser);
-                } catch (JpaSystemException e) {
+                } catch (Exception e) {
                     return userService.findByTelegramId(tgId).orElseThrow(() -> new RuntimeException("User creation failed"));
                 }
             });
             Map<String, Object> response = new HashMap<>();
             response.put("userId", user.getId());
-            // TODO: Генерировать JWT или сессию если нужно
+            String jwt = Jwts.builder()
+                    .setSubject(user.getId().toString())
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                    .signWith(Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret)))
+                    .compact();
+            response.put("token", jwt);
             return response;
         }
         throw new RuntimeException("Invalid initData");
     }
-
     private boolean validateInitData(String initData) {
         try {
             String[] pairs = initData.split("&");
-            System.out.println("Pairs: " + Arrays.toString(pairs));
             String hash = null;
             String[] dataCheck = Arrays.stream(pairs)
                     .filter(p -> !p.startsWith("hash="))
@@ -82,27 +93,21 @@ public class AuthController {
             for (String p : pairs) {
                 if (p.startsWith("hash=")) hash = p.substring(5);
             }
-            System.out.println("DataCheckString: " + dataCheckString);
-            System.out.println("Computed Hash: " + computedHash);
-            System.out.println("Received Hash: " + hash);
             return computedHash.equals(hash);
         } catch (Exception e) {
             return false;
         }
     }
-
     private byte[] computeHmac(byte[] data, byte[] key) throws Exception {
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(new SecretKeySpec(key, "HmacSHA256"));
         return mac.doFinal(data);
     }
-
     private String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) sb.append(String.format("%02x", b));
         return sb.toString();
     }
-
     private Map<String, String> parseInitData(String initData) {
         Map<String, String> map = new HashMap<>();
         for (String pair : initData.split("&")) {

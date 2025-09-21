@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Home, TrendingUp, User, ArrowLeft, Gamepad2, Heart } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { HomeScreen } from './components/HomeScreen';
@@ -6,74 +6,65 @@ import { GamePage } from './components/GamePage';
 import { AddReviewForm } from './components/AddReviewForm';
 import { UserProfile } from './components/UserProfile';
 import { TopRatingsScreen } from './components/TopRatingsScreen';
-
 import { Screen } from './types';
-
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
-
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [previousScreen, setPreviousScreen] = useState<Screen | null>(null);
-
+  const didAuth = useRef(false);
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
-
   useEffect(() => {
+    if (didAuth.current) return;
+    didAuth.current = true;
     if (window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
       const initData = tg.initData;
-      if (initData) {
+      if (initData && !localStorage.getItem('token')) {
         fetch('/api/auth/telegram', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ initData }),
         }).then(res => res.json()).then(data => {
           localStorage.setItem('userId', data.userId.toString());
+          localStorage.setItem('token', data.token);
         }).catch(console.error);
       }
     }
   }, []);
-
   const navigateWithAnimation = (newScreen: Screen) => {
     if (newScreen === currentScreen) return;
-
     setIsTransitioning(true);
     setPreviousScreen(currentScreen);
-
     setTimeout(() => {
       setCurrentScreen(newScreen);
       setIsTransitioning(false);
       setPreviousScreen(null);
     }, 350);
   };
-
   const navigateToGame = (gameId: string) => {
     setSelectedGameId(gameId);
     navigateWithAnimation('game');
   };
-
   const navigateToAddReview = (gameId?: string) => {
     if (gameId) setSelectedGameId(gameId);
     setSelectedReviewId(null);
     navigateWithAnimation('add-review');
   };
-
   const navigateToEditReview = (reviewId: string, gameId: string) => {
     setSelectedGameId(gameId);
     setSelectedReviewId(reviewId);
     navigateWithAnimation('add-review');
   };
-
   const navigateBack = () => {
     if (currentScreen === 'game' || currentScreen === 'add-review') {
       navigateWithAnimation('home');
     }
   };
-
   const handleHeaderLogoClick = () => {
     const logo = document.querySelector('.logo-container');
     if (logo) {
@@ -81,10 +72,8 @@ export default function App() {
       setTimeout(() => logo.classList.remove('animate-bounce'), 300);
     }
   };
-
   const renderHeader = () => {
     const showBackButton = currentScreen === 'game' || currentScreen === 'add-review';
-
     return (
       <header className="sticky top-0 z-50 bg-card border-b border-border backdrop-blur-md">
         <div className="w-full max-w-md mx-auto sm:max-w-lg md:max-w-xl lg:max-w-2xl">
@@ -127,14 +116,11 @@ export default function App() {
       </header>
     );
   };
-
   const renderBottomNav = () => {
     const mainScreens: Screen[] = ['home', 'top-ratings', 'profile'];
-
     if (!mainScreens.includes(currentScreen)) {
       return null;
     }
-
     const navItems = [
       {
         screen: 'home' as Screen,
@@ -152,26 +138,21 @@ export default function App() {
         label: 'Profile',
       }
     ];
-
     const handleNavClick = (screen: Screen) => {
       if (screen === currentScreen) return;
-
       const clickedTab = document.querySelector(`[data-nav-screen="${screen}"]`);
       if (clickedTab) {
         clickedTab.classList.add('animate-bounce');
         setTimeout(() => clickedTab.classList.remove('animate-bounce'), 300);
       }
-
       navigateWithAnimation(screen);
     };
-
     return (
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border backdrop-blur-md transform translate-y-0 transition-transform duration-300">
         <div className="w-full max-w-md mx-auto sm:max-w-lg md:max-w-xl lg:max-w-2xl">
           <div className="flex items-center justify-around h-16 px-2">
             {navItems.map(({ screen, icon: Icon, label }) => {
               const isActive = currentScreen === screen;
-
               return (
                 <button
                   key={screen}
@@ -202,16 +183,13 @@ export default function App() {
       </nav>
     );
   };
-
   const renderScreen = () => {
     const screenClass = `screen-transition ${
       isTransitioning
         ? 'opacity-0 transform translate-x-4 scale-[0.98]'
         : 'opacity-100 transform translate-x-0 scale-100 animate-screen-fade-in'
     }`;
-
     const contentWrapperClass = "w-full max-w-md mx-auto sm:max-w-lg md:max-w-xl lg:max-w-2xl";
-
     switch (currentScreen) {
       case 'home':
         return (
@@ -272,17 +250,14 @@ export default function App() {
         );
     }
   };
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       {renderHeader()}
-
       <main className="pb-16 relative overflow-hidden">
         <div className="relative">
           {renderScreen()}
         </div>
       </main>
-
       {renderBottomNav()}
     </div>
   );

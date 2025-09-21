@@ -4,12 +4,13 @@ import com.mypeak.service.SteamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.Map;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "https://62a47138bf11.ngrok-free.app")
 @RestController
 @RequestMapping("/api/steam")
 public class SteamController {
@@ -23,6 +24,10 @@ public class SteamController {
 
     @GetMapping("/auth-url")
     public String getAuthUrl(@RequestParam Long userId) {
+        Long authUserId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
+        if (!authUserId.equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
         return steamService.getAuthUrl(userId);
     }
 
@@ -36,9 +41,10 @@ public class SteamController {
 
     @PostMapping("/disconnect")
     public void disconnect(@RequestParam Long userId) {
-        // Implement if needed; for now, set steamId to null
-        // User user = userRepository.findById(userId).orElseThrow();
-        // user.setSteamId(null);
-        // userRepository.save(user);
+        Long authUserId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
+        if (!authUserId.equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+        // Implement disconnect logic
     }
 }

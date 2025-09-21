@@ -33,7 +33,6 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
   const [validationStatus, setValidationStatus] = useState<'none' | 'valid' | 'invalid'>('none');
   const [showDuplicateAlert, setShowDuplicateAlert] = useState(false);
   const [game, setGame] = useState(null);
-
   useEffect(() => {
     if (gameId) {
       fetch(`/api/games/${gameId}`)
@@ -55,31 +54,31 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
         });
     }
   }, [gameId, reviewId]);
-
   //const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //  const file = e.target.files?.[0];
-  //  if (file) {
-  //    setScreenshot(file);
-  //    const reader = new FileReader();
-  //    reader.onload = () => {
-  //      setScreenshotPreview(reader.result as string);
-  //      setIsValidating(true);
-  //      setTimeout(() => {
-  //        setIsValidating(false);
-  //        setValidationStatus(Math.random() > 0.3 ? 'valid' : 'invalid');
-  //      }, 2000);
-  //    };
-  //    reader.readAsDataURL(file);
-  //  }
+  // const file = e.target.files?.[0];
+  // if (file) {
+  // setScreenshot(file);
+  // const reader = new FileReader();
+  // reader.onload = () => {
+  // setScreenshotPreview(reader.result as string);
+  // setIsValidating(true);
+  // setTimeout(() => {
+  // setIsValidating(false);
+  // setValidationStatus(Math.random() > 0.3 ? 'valid' : 'invalid');
+  // }, 2000);
+  // };
+  // reader.readAsDataURL(file);
+  // }
   //};
   //const removeScreenshot = () => {
-  //  setScreenshot(null);
-  //  setScreenshotPreview(null);
-  //  setValidationStatus('none');
+  // setScreenshot(null);
+  // setScreenshotPreview(null);
+  // setValidationStatus('none');
   //};
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
     if (!userId) {
       console.error('No userId found');
       return;
@@ -88,7 +87,10 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
     const url = reviewId ? `/api/reviews/${reviewId}` : '/api/reviews';
     const res = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({
         gameId, userId: parseInt(userId), score, reviewText, hoursPlayed: parseInt(hoursPlayed),
         platform: selectedPlatform, completed, recommended, screenshot: screenshotPreview
@@ -140,7 +142,6 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
                 showScore={true}
               />
             </div>
-
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <Slider
@@ -165,7 +166,6 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
                   />
                 </div>
               </div>
-
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>0-19: Bad</span>
                 <span>20-49: Mixed</span>

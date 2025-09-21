@@ -1,10 +1,10 @@
 package com.mypeak.service;
-
 import com.mypeak.dto.AddGameRequest;
 import com.mypeak.dto.GameDTO;
 import com.mypeak.entity.Game;
 import com.mypeak.entity.Review;
 import com.mypeak.repository.GameRepository;
+import com.mypeak.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -12,12 +12,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 @Service
 public class GameService {
     @Autowired
     private GameRepository gameRepository;
-
+    @Autowired
+    private ReviewRepository reviewRepository;
     public List<GameDTO> getAllGames(String search, String genre, String platform) {
         List<Game> games;
         if (search != null && !search.isEmpty()) {
@@ -33,7 +33,6 @@ public class GameService {
         }
         return games.stream().map(this::toDTO).collect(Collectors.toList());
     }
-
     public List<GameDTO> getTopRated(String genre, String platform) {
         List<Game> games = gameRepository.findTopRated();
         if (genre != null && !"All".equals(genre)) {
@@ -44,7 +43,6 @@ public class GameService {
         }
         return games.stream().map(this::toDTO).collect(Collectors.toList());
     }
-
     public List<GameDTO> getPopular(String genre, String platform) {
         List<Game> games = gameRepository.findAll();
         if (genre != null && !"All".equals(genre)) {
@@ -65,11 +63,9 @@ public class GameService {
                 .collect(Collectors.toList());
         return games.stream().map(this::toDTO).collect(Collectors.toList());
     }
-
     public Optional<GameDTO> getGameById(Long id) {
         return gameRepository.findById(id).map(this::toDTO);
     }
-
     public GameDTO addGame(AddGameRequest request) {
         Game game = new Game();
         game.setTitle(request.getTitle());
@@ -83,26 +79,22 @@ public class GameService {
         game = gameRepository.save(game);
         return toDTO(game);
     }
-
     public void updateGameRating(Long gameId) {
         Game game = gameRepository.findById(gameId).orElseThrow();
-        List<Review> reviews = game.getReviews();
-        if (!reviews.isEmpty()) {
-            double totalWeight = 0.0;
-            double weightedSum = 0.0;
-            for (Review r : reviews) {
-                double weight = 1 + (0.001 * Math.log(r.getReviewText().length() + 1)) + (0.01 * Math.sqrt(r.getHoursPlayed())) + (r.getCompleted() ? 0.5 : 0);
-                if (r.getVerified()) weight *= 10;
-                weightedSum += r.getScore() * weight;
-                totalWeight += weight;
-            }
-            double avg = weightedSum / totalWeight;
-            game.setOverallRating(avg);
-            game.setTotalReviews(reviews.size());
-            gameRepository.save(game);
+        List<Review> reviews = reviewRepository.findByGameId(gameId);
+        double totalWeight = 0.0;
+        double weightedSum = 0.0;
+        for (Review r : reviews) {
+            double weight = 1 + (0.001 * Math.log(r.getReviewText().length() + 1)) + (0.01 * Math.sqrt(r.getHoursPlayed())) + (r.getCompleted() ? 0.5 : 0);
+            if (r.getVerified()) weight *= 10;
+            weightedSum += r.getScore() * weight;
+            totalWeight += weight;
         }
+        double avg = (reviews.isEmpty() || totalWeight == 0) ? 0.0 : weightedSum / totalWeight;
+        game.setOverallRating(avg);
+        game.setTotalReviews(reviews.size());
+        gameRepository.save(game);
     }
-
     private GameDTO toDTO(Game game) {
         GameDTO dto = new GameDTO();
         dto.setId(game.getId());

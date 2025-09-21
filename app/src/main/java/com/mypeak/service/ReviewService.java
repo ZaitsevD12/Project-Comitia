@@ -1,5 +1,4 @@
 package com.mypeak.service;
-
 import com.mypeak.dto.AddReviewRequest;
 import com.mypeak.dto.ReviewDTO;
 import com.mypeak.entity.Like;
@@ -12,12 +11,11 @@ import com.mypeak.repository.GameRepository;
 import com.mypeak.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 @Service
 public class ReviewService {
     @Autowired
@@ -32,19 +30,16 @@ public class ReviewService {
     private GameService gameService;
     @Autowired
     private SteamService steamService;
-
     public List<ReviewDTO> getReviewsByGameId(Long gameId, Long currentUserId) {
         return reviewRepository.findByGameId(gameId).stream().map(r -> toDTO(r, currentUserId)).collect(Collectors.toList());
     }
-
     public List<ReviewDTO> getReviewsByUserId(Long userId, Long currentUserId) {
         return reviewRepository.findByUserId(userId).stream().map(r -> toDTO(r, currentUserId)).collect(Collectors.toList());
     }
-
     public Optional<ReviewDTO> getReviewById(Long id, Long currentUserId) {
         return reviewRepository.findById(id).map(r -> toDTO(r, currentUserId));
     }
-
+    @Transactional
     public ReviewDTO addReview(AddReviewRequest request) {
         // Проверка на дубликат (оптимизация: не дать добавить дубль)
         List<Review> existing = reviewRepository.findByUserId(request.getUserId()).stream()
@@ -53,10 +48,8 @@ public class ReviewService {
         if (!existing.isEmpty()) {
             throw new RuntimeException("Duplicate review");
         }
-
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
         Game game = gameRepository.findById(request.getGameId()).orElseThrow(() -> new RuntimeException("Game not found with id: " + request.getGameId()));
-
         // Check if game is released
         boolean isReleased;
         if (game.getSteamAppId() != null) {
@@ -69,7 +62,6 @@ public class ReviewService {
         if (!isReleased) {
             throw new RuntimeException("Game not released yet");
         }
-
         Review review = new Review();
         review.setUser(user);
         review.setGame(game);
@@ -85,15 +77,12 @@ public class ReviewService {
         } else {
             review.setVerified(false);
         }
-
         review = reviewRepository.save(review);
-
         // Обновить рейтинг игры
         gameService.updateGameRating(game.getId());
-
         return toDTO(review, request.getUserId());
     }
-
+    @Transactional
     public ReviewDTO updateReview(Long id, AddReviewRequest request) {
         Review review = reviewRepository.findById(id).orElseThrow();
         // Check ownership
@@ -116,7 +105,7 @@ public class ReviewService {
         gameService.updateGameRating(review.getGame().getId());
         return toDTO(review, request.getUserId());
     }
-
+    @Transactional
     public void deleteReview(Long id, Long userId) {
         Review review = reviewRepository.findById(id).orElseThrow();
         // Check ownership
@@ -126,7 +115,6 @@ public class ReviewService {
         reviewRepository.delete(review);
         gameService.updateGameRating(review.getGame().getId());
     }
-
     public void voteReview(Long reviewId, Long userId, boolean isLike) {
         Optional<Like> existing = likeRepository.findByUserIdAndReviewId(userId, reviewId);
         if (existing.isPresent()) {
@@ -144,7 +132,6 @@ public class ReviewService {
             likeRepository.save(like);
         }
     }
-
     private ReviewDTO toDTO(Review review, Long currentUserId) {
         ReviewDTO dto = new ReviewDTO();
         dto.setId(review.getId());

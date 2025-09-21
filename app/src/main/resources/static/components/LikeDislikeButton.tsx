@@ -28,12 +28,16 @@ export function LikeDislikeButton({
   const [likeAnimation, setLikeAnimation] = useState(false);
   const [dislikeAnimation, setDislikeAnimation] = useState(false);
   const userId = localStorage.getItem('userId');
-const handleVote = async (isLike: boolean) => {
+  const token = localStorage.getItem('token');
+  const handleVote = async (isLike: boolean) => {
     if (!userId) return;
     const response = await fetch(`/api/reviews/${reviewId}/vote`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: parseInt(userId), like: isLike })  // Change "isLike" to "like"
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ userId: parseInt(userId), like: isLike }) // Change "isLike" to "like"
     });
     if (response.ok) {
       onVoteSuccess?.();
@@ -120,7 +124,6 @@ const handleVote = async (isLike: boolean) => {
           <span className={`${textSize} ml-1`}>{likeCount}</span>
         )}
       </Button>
-
       <Button
         variant="ghost"
         size="sm"
