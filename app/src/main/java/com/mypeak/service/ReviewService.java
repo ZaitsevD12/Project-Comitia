@@ -1,3 +1,4 @@
+// com/mypeak/service/ReviewService.java
 package com.mypeak.service;
 import com.mypeak.dto.AddReviewRequest;
 import com.mypeak.dto.ReviewDTO;
@@ -9,6 +10,8 @@ import com.mypeak.repository.LikeRepository;
 import com.mypeak.repository.ReviewRepository;
 import com.mypeak.repository.GameRepository;
 import com.mypeak.repository.UserRepository;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +44,6 @@ public class ReviewService {
     }
     @Transactional
     public ReviewDTO addReview(AddReviewRequest request) {
-        // Проверка на дубликат (оптимизация: не дать добавить дубль)
         List<Review> existing = reviewRepository.findByUserId(request.getUserId()).stream()
                 .filter(r -> r.getGame().getId().equals(request.getGameId()))
                 .toList();
@@ -50,14 +52,13 @@ public class ReviewService {
         }
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
         Game game = gameRepository.findById(request.getGameId()).orElseThrow(() -> new RuntimeException("Game not found with id: " + request.getGameId()));
-        // Check if game is released
         boolean isReleased;
         if (game.getSteamAppId() != null) {
             isReleased = steamService.isGameReleased(game.getSteamAppId());
         } else if (game.getReleaseDate() != null) {
             isReleased = !LocalDate.now().isBefore(game.getReleaseDate());
         } else {
-            isReleased = true; // If no info, allow
+            isReleased = true;
         }
         if (!isReleased) {
             throw new RuntimeException("Game not released yet");
@@ -66,7 +67,7 @@ public class ReviewService {
         review.setUser(user);
         review.setGame(game);
         review.setScore(request.getScore());
-        review.setReviewText(request.getReviewText());
+        review.setReviewText(Jsoup.clean(request.getReviewText(), Safelist.basic()));
         review.setHoursPlayed(request.getHoursPlayed());
         review.setPlatform(request.getPlatform());
         review.setCompleted(request.getCompleted());
@@ -78,19 +79,17 @@ public class ReviewService {
             review.setVerified(false);
         }
         review = reviewRepository.save(review);
-        // Обновить рейтинг игры
         gameService.updateGameRating(game.getId());
         return toDTO(review, request.getUserId());
     }
     @Transactional
     public ReviewDTO updateReview(Long id, AddReviewRequest request) {
         Review review = reviewRepository.findById(id).orElseThrow();
-        // Check ownership
         if (!review.getUser().getId().equals(request.getUserId())) {
             throw new RuntimeException("Not owner");
         }
         review.setScore(request.getScore());
-        review.setReviewText(request.getReviewText());
+        review.setReviewText(Jsoup.clean(request.getReviewText(), Safelist.basic()));
         review.setHoursPlayed(request.getHoursPlayed());
         review.setPlatform(request.getPlatform());
         review.setCompleted(request.getCompleted());
@@ -108,7 +107,6 @@ public class ReviewService {
     @Transactional
     public void deleteReview(Long id, Long userId) {
         Review review = reviewRepository.findById(id).orElseThrow();
-        // Check ownership
         if (!review.getUser().getId().equals(userId)) {
             throw new RuntimeException("Not owner");
         }

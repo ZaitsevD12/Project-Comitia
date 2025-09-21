@@ -1,3 +1,4 @@
+// com/mypeak/service/GameService.java
 package com.mypeak.service;
 import com.mypeak.dto.AddGameRequest;
 import com.mypeak.dto.GameDTO;
@@ -80,7 +81,8 @@ public class GameService {
         return toDTO(game);
     }
     public void updateGameRating(Long gameId) {
-        Game game = gameRepository.findById(gameId).orElseThrow();
+        Optional<Game> optionalGame = gameRepository.findByIdForUpdate(gameId);
+        Game game = optionalGame.orElseThrow(() -> new RuntimeException("Game not found"));
         List<Review> reviews = reviewRepository.findByGameId(gameId);
         double totalWeight = 0.0;
         double weightedSum = 0.0;

@@ -1,3 +1,4 @@
+// com/mypeak/entity/Review.java
 package com.mypeak.entity;
 
 import jakarta.persistence.*;
@@ -5,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "reviews", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "game_id"}))
 @Data
 public class Review {
     @Id

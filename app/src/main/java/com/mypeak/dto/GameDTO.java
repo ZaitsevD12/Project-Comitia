@@ -1,3 +1,4 @@
+// com/mypeak/dto/GameDTO.java
 package com.mypeak.dto;
 
 import lombok.Data;

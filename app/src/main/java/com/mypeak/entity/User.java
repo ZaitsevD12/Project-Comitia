@@ -1,3 +1,4 @@
+// com/mypeak/entity/User.java
 package com.mypeak.entity;
 
 import jakarta.persistence.*;
