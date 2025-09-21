@@ -42,6 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e) {
                 logger.error("Token validation failed", e);
+                SecurityContextHolder.clearContext();
             }
         }
         filterChain.doFilter(request, response);

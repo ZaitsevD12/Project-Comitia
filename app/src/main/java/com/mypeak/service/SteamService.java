@@ -171,7 +171,7 @@ public class SteamService {
                 }
             }
         }
-        return "https://62a47138bf11.ngrok-free.app/";
+        return publicUrl;
     }
 
     public boolean userOwnsGame(String steamId, Long appId) {
@@ -199,7 +199,20 @@ public class SteamService {
             JsonNode gameData = root.path(appId.toString()).path("data");
             return !gameData.path("release_date").path("coming_soon").asBoolean(true);
         } catch (Exception e) {
-            return true; // Fallback if API fails
+            return false;
+        }
+    }
+
+    public void disconnect(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setSteamId(null);
+        userRepository.save(user);
+        List<Review> userReviews = reviewRepository.findByUserId(userId);
+        for (Review review : userReviews) {
+            if (review.getVerified()) {
+                review.setVerified(false);
+                reviewRepository.save(review);
+            }
         }
     }
 }

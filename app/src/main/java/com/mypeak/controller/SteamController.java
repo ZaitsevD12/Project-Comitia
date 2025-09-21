@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.Map;
 
-@CrossOrigin(origins = "https://62a47138bf11.ngrok-free.app")
+@CrossOrigin(origins = "${app.allowed.origin}")
 @RestController
 @RequestMapping("/api/steam")
 public class SteamController {
@@ -45,6 +45,6 @@ public class SteamController {
         if (!authUserId.equals(userId)) {
             throw new RuntimeException("Unauthorized");
         }
-        // Implement disconnect logic
+        steamService.disconnect(userId);
     }
 }

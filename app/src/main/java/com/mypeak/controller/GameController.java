@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "https://62a47138bf11.ngrok-free.app")
+@CrossOrigin(origins = "${app.allowed.origin}")
 @RestController
 @RequestMapping("/api/games")
 public class GameController {

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@CrossOrigin(origins = "https://62a47138bf11.ngrok-free.app")
+@CrossOrigin(origins = "${app.allowed.origin}")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {

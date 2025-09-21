@@ -20,7 +20,7 @@ import java.util.Date;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Base64;
 import io.jsonwebtoken.security.Keys;
-@CrossOrigin(origins = "https://9a8015c3e1e6.ngrok-free.app")
+@CrossOrigin(origins = "${app.allowed.origin}")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -93,7 +93,17 @@ public class AuthController {
             for (String p : pairs) {
                 if (p.startsWith("hash=")) hash = p.substring(5);
             }
-            return computedHash.equals(hash);
+            if (!computedHash.equals(hash)) {
+                return false;
+            }
+            // Check auth_date to prevent replay
+            Map<String, String> dataMap = parseInitData(initData);
+            long authDate = Long.parseLong(dataMap.get("auth_date"));
+            long currentTime = System.currentTimeMillis() / 1000;
+            if (currentTime - authDate > 86400) { // 24 hours
+                return false;
+            }
+            return true;
         } catch (Exception e) {
             return false;
         }
@@ -112,7 +122,10 @@ public class AuthController {
         Map<String, String> map = new HashMap<>();
         for (String pair : initData.split("&")) {
             String[] kv = pair.split("=", 2);
-            if (kv.length == 2) map.put(kv[0], java.net.URLDecoder.decode(kv[1], StandardCharsets.UTF_8));
+            if (kv.length == 2) {
+                String value = java.net.URLDecoder.decode(kv[1], StandardCharsets.UTF_8);
+                map.put(kv[0], value);
+            }
         }
         String userJson = map.get("user");
         if (userJson != null) {
