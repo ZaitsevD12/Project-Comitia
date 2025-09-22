@@ -21,23 +21,20 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    runtimeOnly("org.xerial:sqlite-jdbc:3.46.1.3") // Драйвер SQLite
     implementation("org.projectlombok:lombok:1.18.34") // Для аннотаций
     annotationProcessor("org.projectlombok:lombok:1.18.34")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation("org.hibernate.orm:hibernate-community-dialects:6.5.2.Final")
     implementation("org.telegram:telegrambots-spring-boot-starter:6.9.7.1")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
     implementation("org.glassfish.jaxb:jaxb-runtime:2.3.1")
     implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
-    implementation("io.jsonwebtoken:jjwt-api:0.13.0")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
     implementation("org.jsoup:jsoup:1.17.2")
+    implementation("org.postgresql:postgresql:42.7.4")
+    implementation("com.giffing.bucket4j.spring.boot.starter:bucket4j-spring-boot-starter:0.8.0")
 }
 
 tasks.withType<Test> {

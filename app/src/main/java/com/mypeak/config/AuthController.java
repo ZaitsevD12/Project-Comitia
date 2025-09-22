@@ -1,8 +1,10 @@
+// com/mypeak/config/AuthController.java
 package com.mypeak.config;
 import com.mypeak.entity.User;
 import com.mypeak.repository.UserRepository;
 import com.mypeak.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
@@ -50,7 +52,7 @@ public class AuthController {
                 newUser.setAvatar(data.getOrDefault("photo_url", ""));
                 try {
                     return userRepository.save(newUser);
-                } catch (Exception e) {
+                } catch (DataIntegrityViolationException e) {
                     return userService.findByTelegramId(tgId).orElseThrow(() -> new RuntimeException("User creation failed"));
                 }
             });
@@ -100,7 +102,7 @@ public class AuthController {
             Map<String, String> dataMap = parseInitData(initData);
             long authDate = Long.parseLong(dataMap.get("auth_date"));
             long currentTime = System.currentTimeMillis() / 1000;
-            if (currentTime - authDate > 86400) { // 24 hours
+            if (currentTime - authDate > 600) { // 10 minutes
                 return false;
             }
             return true;

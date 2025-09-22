@@ -1,3 +1,4 @@
+// com/mypeak/config/SecurityConfig.java (added CSP)
 package com.mypeak.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +37,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/steam/callback").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .headers(headers -> headers
+                        .contentSecurityPolicy("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.akamaihd.net https://*.steamusercontent.com https://*.steamcommunity.com;")
+                );
         return http.build();
     }
 }

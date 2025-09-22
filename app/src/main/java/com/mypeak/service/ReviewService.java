@@ -1,4 +1,4 @@
-// com/mypeak/service/ReviewService.java
+// com/mypeak/service/ReviewService.java (updated deleteReview to delete likes first)
 package com.mypeak.service;
 import com.mypeak.dto.AddReviewRequest;
 import com.mypeak.dto.ReviewDTO;
@@ -50,8 +50,8 @@ public class ReviewService {
         if (!existing.isEmpty()) {
             throw new RuntimeException("Duplicate review");
         }
-        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
-        Game game = gameRepository.findById(request.getGameId()).orElseThrow(() -> new RuntimeException("Game not found with id: " + request.getGameId()));
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
+        Game game = gameRepository.findById(request.getGameId()).orElseThrow(() -> new RuntimeException("Game not found"));
         boolean isReleased;
         if (game.getSteamAppId() != null) {
             isReleased = steamService.isGameReleased(game.getSteamAppId());
@@ -63,6 +63,10 @@ public class ReviewService {
         if (!isReleased) {
             throw new RuntimeException("Game not released yet");
         }
+        String screenshot = request.getScreenshot();
+        if (screenshot != null && !screenshot.isEmpty() && !isTrustedScreenshotUrl(screenshot)) {
+            throw new RuntimeException("Invalid screenshot URL");
+        }
         Review review = new Review();
         review.setUser(user);
         review.setGame(game);
@@ -72,7 +76,7 @@ public class ReviewService {
         review.setPlatform(request.getPlatform());
         review.setCompleted(request.getCompleted());
         review.setRecommended(request.getRecommended());
-        review.setScreenshot(request.getScreenshot());
+        review.setScreenshot(screenshot);
         if ("PC".equals(review.getPlatform()) && game.getSteamAppId() != null && user.getSteamId() != null) {
             review.setVerified(steamService.userOwnsGame(user.getSteamId(), game.getSteamAppId()));
         } else {
@@ -88,13 +92,17 @@ public class ReviewService {
         if (!review.getUser().getId().equals(request.getUserId())) {
             throw new RuntimeException("Not owner");
         }
+        String screenshot = request.getScreenshot();
+        if (screenshot != null && !screenshot.isEmpty() && !isTrustedScreenshotUrl(screenshot)) {
+            throw new RuntimeException("Invalid screenshot URL");
+        }
         review.setScore(request.getScore());
         review.setReviewText(Jsoup.clean(request.getReviewText(), Safelist.basic()));
         review.setHoursPlayed(request.getHoursPlayed());
         review.setPlatform(request.getPlatform());
         review.setCompleted(request.getCompleted());
         review.setRecommended(request.getRecommended());
-        review.setScreenshot(request.getScreenshot());
+        review.setScreenshot(screenshot);
         if ("PC".equals(review.getPlatform()) && review.getGame().getSteamAppId() != null && review.getUser().getSteamId() != null) {
             review.setVerified(steamService.userOwnsGame(review.getUser().getSteamId(), review.getGame().getSteamAppId()));
         } else {
@@ -110,11 +118,13 @@ public class ReviewService {
         if (!review.getUser().getId().equals(userId)) {
             throw new RuntimeException("Not owner");
         }
+        likeRepository.deleteByReviewId(id);
         reviewRepository.delete(review);
         gameService.updateGameRating(review.getGame().getId());
     }
+    @Transactional
     public void voteReview(Long reviewId, Long userId, boolean isLike) {
-        Optional<Like> existing = likeRepository.findByUserIdAndReviewId(userId, reviewId);
+        Optional<Like> existing = likeRepository.findByUserIdAndReviewIdWithLock(userId, reviewId);
         if (existing.isPresent()) {
             if (existing.get().isPositive() == isLike) {
                 likeRepository.delete(existing.get());
@@ -129,6 +139,12 @@ public class ReviewService {
             like.setPositive(isLike);
             likeRepository.save(like);
         }
+    }
+    private boolean isTrustedScreenshotUrl(String url) {
+        return url.startsWith("https://images.steamusercontent.com/") ||
+                url.startsWith("https://steamuserimages-a.akamaihd.net/") ||
+                url.startsWith("https://steamcdn-a.akamaihd.net/") ||
+                url.startsWith("https://steamcommunity.com/");
     }
     private ReviewDTO toDTO(Review review, Long currentUserId) {
         ReviewDTO dto = new ReviewDTO();
