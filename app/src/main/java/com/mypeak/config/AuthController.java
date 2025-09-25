@@ -1,4 +1,3 @@
-// com/mypeak/config/AuthController.java
 package com.mypeak.config;
 import com.mypeak.entity.User;
 import com.mypeak.repository.UserRepository;
@@ -22,10 +21,15 @@ import java.util.Date;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Base64;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @CrossOrigin(origins = "${app.allowed.origin}")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @Value("${telegram.bot.token}")
     private String botToken;
     @Value("${jwt.secret}")
@@ -42,13 +46,14 @@ public class AuthController {
     @PostMapping("/telegram")
     public Map<String, Object> authTelegram(@RequestBody Map<String, String> body) {
         String initData = body.get("initData");
+        logger.info("Received initData: {}", initData);
         if (validateInitData(initData)) {
             Map<String, String> data = parseInitData(initData);
             Long tgId = Long.parseLong(data.get("user_id"));
             User user = userService.findByTelegramId(tgId).orElseGet(() -> {
                 User newUser = new User();
                 newUser.setTelegramId(tgId);
-                newUser.setName(data.getOrDefault("username", "TG User"));
+                newUser.setName((data.getOrDefault("first_name", "") + " " + data.getOrDefault("last_name", "TG User")).trim());
                 newUser.setAvatar(data.getOrDefault("photo_url", ""));
                 try {
                     return userRepository.save(newUser);
@@ -56,6 +61,21 @@ public class AuthController {
                     return userService.findByTelegramId(tgId).orElseThrow(() -> new RuntimeException("User creation failed"));
                 }
             });
+            // Update name and avatar if changed
+            String newName = (data.getOrDefault("first_name", "") + " " + data.getOrDefault("last_name", "TG User")).trim();
+            String newAvatar = data.getOrDefault("photo_url", "");
+            boolean updated = false;
+            if (!user.getName().equals(newName)) {
+                user.setName(newName);
+                updated = true;
+            }
+            if (!user.getAvatar().equals(newAvatar)) {
+                user.setAvatar(newAvatar);
+                updated = true;
+            }
+            if (updated) {
+                userRepository.save(user);
+            }
             Map<String, Object> response = new HashMap<>();
             response.put("userId", user.getId());
             String jwt = Jwts.builder()
@@ -107,6 +127,7 @@ public class AuthController {
             }
             return true;
         } catch (Exception e) {
+            logger.error("Validation failed", e);
             return false;
         }
     }
@@ -134,7 +155,8 @@ public class AuthController {
             try {
                 JsonNode userNode = objectMapper.readTree(userJson);
                 map.put("user_id", String.valueOf(userNode.path("id").asLong()));
-                map.put("username", userNode.path("username").asText());
+                map.put("first_name", userNode.path("first_name").asText());
+                map.put("last_name", userNode.path("last_name").asText());
                 map.put("photo_url", userNode.path("photo_url").asText());
             } catch (Exception e) {
                 // Ignore parse error

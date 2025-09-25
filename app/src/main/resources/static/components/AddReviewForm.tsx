@@ -187,7 +187,7 @@ export function AddReviewForm({ gameId, reviewId, onSubmit, onCancel }: AddRevie
             className="resize-none"
           />
           <div className="text-xs text-muted-foreground text-right">
-            {reviewText.length}/500 characters
+            {reviewText.length}/5000 characters
           </div>
         </div>
         {/* Hours Played */}

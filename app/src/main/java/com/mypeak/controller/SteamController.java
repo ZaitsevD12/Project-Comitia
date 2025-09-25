@@ -1,27 +1,22 @@
 package com.mypeak.controller;
-
 import com.mypeak.service.SteamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.net.URI;
 import java.util.Map;
-
 @CrossOrigin(origins = "${app.allowed.origin}")
 @RestController
 @RequestMapping("/api/steam")
 public class SteamController {
     @Autowired
     private SteamService steamService;
-
     @GetMapping("/search")
     public void searchAndAddGame(@RequestParam String query) {
         steamService.searchAndAddIfNotExist(query);
     }
-
     @GetMapping("/auth-url")
     public String getAuthUrl(@RequestParam Long userId) {
         Long authUserId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -30,7 +25,6 @@ public class SteamController {
         }
         return steamService.getAuthUrl(userId);
     }
-
     @GetMapping("/callback")
     public ResponseEntity<Void> callback(@RequestParam Map<String, String> params) {
         String url = steamService.handleCallback(params);
@@ -38,7 +32,6 @@ public class SteamController {
                 .location(URI.create(url))
                 .build();
     }
-
     @PostMapping("/disconnect")
     public void disconnect(@RequestParam Long userId) {
         Long authUserId = Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());

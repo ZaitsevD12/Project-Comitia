@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactGA from 'react-ga4';
 import { Home, TrendingUp, User, ArrowLeft, Gamepad2, Heart } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { HomeScreen } from './components/HomeScreen';
@@ -7,6 +8,7 @@ import { AddReviewForm } from './components/AddReviewForm';
 import { UserProfile } from './components/UserProfile';
 import { TopRatingsScreen } from './components/TopRatingsScreen';
 import { Screen } from './types';
+
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
@@ -14,28 +16,54 @@ export default function App() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [previousScreen, setPreviousScreen] = useState<Screen | null>(null);
   const didAuth = useRef(false);
+
+  // Initialize GA4
   useEffect(() => {
-    document.documentElement.classList.add('dark');
+    ReactGA.initialize('G-MJ0DEKPZD3'); // Your GA4 Measurement ID
+    ReactGA.send({ hitType: 'pageview', page: window.location.pathname });
   }, []);
+
+  // Telegram Auth and New User Tracking
   useEffect(() => {
-    if (didAuth.current) return;
-    didAuth.current = true;
     if (window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
       const initData = tg.initData;
-      if (initData && !localStorage.getItem('token')) {
+      if (initData) {
+        console.log('InitData:', initData);
         fetch('/api/auth/telegram', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ initData }),
-        }).then(res => res.json()).then(data => {
+        })
+        .then(res => {
+          if (!res.ok) console.error(res.status, res.statusText);
+          return res.json();
+        })
+        .then(data => {
           localStorage.setItem('userId', data.userId.toString());
           localStorage.setItem('token', data.token);
-        }).catch(console.error);
+          ReactGA.set({ user_id: `TelegramID_${data.userId}` });
+          ReactGA.event({ category: 'User', action: 'Login' });
+        })
+        .catch(err => {
+          console.error('Auth failed:', err);
+          localStorage.removeItem('token');
+          localStorage.removeItem('userId');
+        });
       }
     }
   }, []);
+
+  // Track screen changes
+  useEffect(() => {
+    ReactGA.send({ hitType: 'pageview', page: `/screen/${currentScreen}` });
+  }, [currentScreen]);
+
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
   const navigateWithAnimation = (newScreen: Screen) => {
     if (newScreen === currentScreen) return;
     setIsTransitioning(true);
@@ -46,25 +74,30 @@ export default function App() {
       setPreviousScreen(null);
     }, 350);
   };
+
   const navigateToGame = (gameId: string) => {
     setSelectedGameId(gameId);
     navigateWithAnimation('game');
   };
+
   const navigateToAddReview = (gameId?: string) => {
     if (gameId) setSelectedGameId(gameId);
     setSelectedReviewId(null);
     navigateWithAnimation('add-review');
   };
+
   const navigateToEditReview = (reviewId: string, gameId: string) => {
     setSelectedGameId(gameId);
     setSelectedReviewId(reviewId);
     navigateWithAnimation('add-review');
   };
+
   const navigateBack = () => {
     if (currentScreen === 'game' || currentScreen === 'add-review') {
       navigateWithAnimation('home');
     }
   };
+
   const handleHeaderLogoClick = () => {
     const logo = document.querySelector('.logo-container');
     if (logo) {
@@ -72,6 +105,7 @@ export default function App() {
       setTimeout(() => logo.classList.remove('animate-bounce'), 300);
     }
   };
+
   const renderHeader = () => {
     const showBackButton = currentScreen === 'game' || currentScreen === 'add-review';
     return (
@@ -107,7 +141,7 @@ export default function App() {
               variant="ghost"
               size="icon"
               className="ml-auto h-9 w-9 hover:bg-accent/50 transition-all duration-300"
-              onClick={() => window.open('https://hipolink.net/mypeak/tips', '_blank')}
+              onClick={() => window.open('https://boosty.to/mypeak/donate', '_blank')}
             >
               <Heart className="h-5 w-5 text-red-500 animate-pulse" />
             </Button>
@@ -116,6 +150,7 @@ export default function App() {
       </header>
     );
   };
+
   const renderBottomNav = () => {
     const mainScreens: Screen[] = ['home', 'top-ratings', 'profile'];
     if (!mainScreens.includes(currentScreen)) {
@@ -136,7 +171,7 @@ export default function App() {
         screen: 'profile' as Screen,
         icon: User,
         label: 'Profile',
-      }
+      },
     ];
     const handleNavClick = (screen: Screen) => {
       if (screen === currentScreen) return;
@@ -167,12 +202,16 @@ export default function App() {
                     }
                   `}
                 >
-                  <Icon className={`h-5 w-5 flex-shrink-0 transition-all duration-300 cubic-bezier(0.23, 1, 0.32, 1) ${
-                    isActive ? 'scale-110 text-primary-foreground' : 'scale-100'
-                  }`} />
-                  <span className={`text-xs font-medium truncate transition-all duration-300 ${
-                    isActive ? 'transform scale-105' : 'scale-100'
-                  }`}>
+                  <Icon
+                    className={`h-5 w-5 flex-shrink-0 transition-all duration-300 cubic-bezier(0.23, 1, 0.32, 1) ${
+                      isActive ? 'scale-110 text-primary-foreground' : 'scale-100'
+                    }`}
+                  />
+                  <span
+                    className={`text-xs font-medium truncate transition-all duration-300 ${
+                      isActive ? 'transform scale-105' : 'scale-100'
+                    }`}
+                  >
                     {label}
                   </span>
                 </button>
@@ -183,13 +222,14 @@ export default function App() {
       </nav>
     );
   };
+
   const renderScreen = () => {
     const screenClass = `screen-transition ${
       isTransitioning
         ? 'opacity-0 transform translate-x-4 scale-[0.98]'
         : 'opacity-100 transform translate-x-0 scale-100 animate-screen-fade-in'
     }`;
-    const contentWrapperClass = "w-full max-w-md mx-auto sm:max-w-lg md:max-w-xl lg:max-w-2xl";
+    const contentWrapperClass = 'w-full max-w-md mx-auto sm:max-w-lg md:max-w-xl lg:max-w-2xl';
     switch (currentScreen) {
       case 'home':
         return (
@@ -228,7 +268,7 @@ export default function App() {
         return (
           <div className={screenClass}>
             <div className={contentWrapperClass}>
-              <UserProfile onGameSelect={navigateToGame} />
+              <UserProfile onGameSelect={navigateToGame} authFetch={authFetch} />
             </div>
           </div>
         );
@@ -250,13 +290,24 @@ export default function App() {
         );
     }
   };
+
+  const authFetch = async (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    const headers = { ...options.headers, Authorization: `Bearer ${token}` };
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      window.location.reload();
+    }
+    return res;
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {renderHeader()}
       <main className="pb-16 relative overflow-hidden">
-        <div className="relative">
-          {renderScreen()}
-        </div>
+        <div className="relative">{renderScreen()}</div>
       </main>
       {renderBottomNav()}
     </div>

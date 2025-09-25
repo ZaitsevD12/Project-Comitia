@@ -1,4 +1,3 @@
-// com/mypeak/entity/Review.java
 package com.mypeak.entity;
 
 import jakarta.persistence.*;
@@ -23,6 +22,7 @@ public class Review {
 
     private Integer score;
 
+    @Column(length = 5000)
     private String reviewText;
 
     private Integer hoursPlayed;

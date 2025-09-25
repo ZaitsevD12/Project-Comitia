@@ -12,8 +12,9 @@ import { SteamIcon } from './SteamIcon';
 import { AddReviewForm } from './AddReviewForm';
 interface UserProfileProps {
   onGameSelect: (gameId: string) => void;
+  authFetch: (url: string, options?: any) => Promise<Response>;
 }
-export function UserProfile({ onGameSelect }: UserProfileProps) {
+export function UserProfile({ onGameSelect, authFetch }: UserProfileProps) {
   const [selectedTab, setSelectedTab] = useState<'reviews' | 'stats'>('reviews');
   const [isSteamConnected, setIsSteamConnected] = useState(false);
   const [user, setUser] = useState(null);
@@ -22,17 +23,19 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
   useEffect(() => {
     fetchUserAndReviews();
   }, []);
-  const fetchUserAndReviews = () => {
+  const fetchUserAndReviews = async () => {
     const userId = localStorage.getItem('userId');
     const token = localStorage.getItem('token');
     if (!userId) return;
-    fetch(`/api/users/${userId}`, {
+    const userRes = await authFetch(`/api/users/${userId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
-    }).then(res => res.json()).then(data => {
-      setUser(data);
-      setIsSteamConnected(!!data.steamId);
     });
-    fetch(`/api/reviews/user/${userId}`).then(res => res.json()).then(setReviews);
+    const userData = await userRes.json();
+    setUser(userData);
+    setIsSteamConnected(!!userData.steamId);
+    const reviewsRes = await authFetch(`/api/reviews/user/${userId}`);
+    const reviewsData = await reviewsRes.json();
+    setReviews(reviewsData);
   };
   if (!user) return <div className="p-4 text-center">Loading...</div>;
   if (editingReviewId) {
@@ -69,34 +72,34 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
     a.click();
     window.URL.revokeObjectURL(url);
   };
-  const handleSteamAuth = () => {
+  const handleSteamAuth = async () => {
     const userId = localStorage.getItem('userId');
     const token = localStorage.getItem('token');
     if (isSteamConnected) {
-      fetch(`/api/steam/disconnect?userId=${userId}`, {
+      await authFetch(`/api/steam/disconnect?userId=${userId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
-      }).then(() => {
-        setIsSteamConnected(false);
       });
+      setIsSteamConnected(false);
     } else {
-      fetch(`/api/steam/auth-url?userId=${userId}`, {
+      const res = await authFetch(`/api/steam/auth-url?userId=${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
-      }).then(res => res.text()).then(url => {
-        window.location.href = url;
       });
+      const url = await res.text();
+      window.location.href = url;
     }
   };
   const handleEditReview = (id) => {
     setEditingReviewId(id);
   };
-  const handleDeleteReview = (id) => {
+  const handleDeleteReview = async (id) => {
     const userId = localStorage.getItem('userId');
     const token = localStorage.getItem('token');
-    fetch(`/api/reviews/${id}?userId=${userId}`, {
+    await authFetch(`/api/reviews/${id}?userId=${userId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
-    }).then(fetchUserAndReviews);
+    });
+    fetchUserAndReviews();
   };
   const renderReviewCard = (reviewWithGame: any) => {
     const { game, score, reviewText, hoursPlayed, platform, completed, recommended, verified, createdAt, id } = reviewWithGame;
@@ -157,7 +160,7 @@ export function UserProfile({ onGameSelect }: UserProfileProps) {
                   </DropdownMenu>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-2">{reviewText}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2 break-words">{reviewText}</p>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{new Date(createdAt).toLocaleDateString()}</span>
                 <div className="flex items-center gap-1">

@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['7b7a5a63db0e.ngrok-free.app'],
+    allowedHosts: ['my-peak.fun'],
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

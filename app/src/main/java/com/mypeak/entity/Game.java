@@ -1,4 +1,3 @@
-// com/mypeak/entity/Game.java
 package com.mypeak.entity;
 
 import jakarta.persistence.*;
@@ -18,6 +17,7 @@ public class Game {
     private Long id;
     @Column(nullable = false, unique = true)
     private String title;
+    @Column(length = 1000)
     private String description;
     private String genre;
     @ElementCollection(fetch = FetchType.EAGER)

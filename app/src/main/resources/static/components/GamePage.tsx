@@ -83,7 +83,7 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
   const verifiedPercent = total > 0 ? Math.round((verifiedCount / total) * 100) : 0;
   const unverifiedPercent = 100 - verifiedPercent;
   const dominantPercent = Math.max(verifiedPercent, unverifiedPercent);
-  const dominantSide = verifiedPercent > unverifiedPercent ? 'Verified' : 'Unverified';
+  const dominantSide = verifiedPercent > 0 ? 'Verified' : 'Unverified';
   const renderReview = (review: any) => (
     <Card key={review.id} className="animate-slide-up">
       <CardContent className="p-4 space-y-3">
@@ -144,7 +144,7 @@ export function GamePage({ gameId, onAddReview, onEditReview }: GamePageProps) {
             )}
           </div>
         </div>
-        <p className="text-sm leading-relaxed">{review.reviewText}</p>
+        <p className="text-sm leading-relaxed break-words">{review.reviewText}</p>
         {review.screenshot && (
           <div className="mt-3">
             <ImageWithFallback

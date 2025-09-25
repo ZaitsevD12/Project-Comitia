@@ -1,5 +1,4 @@
 package com.mypeak.service;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mypeak.dto.AddGameRequest;
@@ -24,9 +23,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class SteamService {
+    private static final Logger logger = LoggerFactory.getLogger(SteamService.class);
+
     @Autowired
     private GameRepository gameRepository;
     @Autowired
@@ -42,7 +45,6 @@ public class SteamService {
     @Value("${steam.api.key}")
     private String apiKey;
     private static final ConcurrentHashMap<String, Long> stateMap = new ConcurrentHashMap<>();
-
     public void searchAndAddIfNotExist(String query) {
         String searchUrl = "https://store.steampowered.com/api/storesearch/?term=" + query + "&cc=US&l=english";
         String response = restTemplate.getForObject(searchUrl, String.class);
@@ -60,6 +62,7 @@ public class SteamService {
                         String detailsResponse = restTemplate.getForObject(detailsUrl, String.class);
                         JsonNode detailsRoot = objectMapper.readTree(detailsResponse);
                         JsonNode gameData = detailsRoot.path(String.valueOf(appId)).path("data");
+                        logger.info("gameData: {}", gameData.toString());
                         AddGameRequest request = new AddGameRequest();
                         request.setTitle(title);
                         request.setDescription(gameData.path("short_description").asText());
@@ -85,7 +88,6 @@ public class SteamService {
             // Log error
         }
     }
-
     private LocalDate parseReleaseDate(String dateStr) {
         if (dateStr == null || dateStr.isEmpty() || dateStr.equalsIgnoreCase("coming soon")) {
             return null;
@@ -104,7 +106,6 @@ public class SteamService {
         }
         return null; // If cannot parse
     }
-
     public String getAuthUrl(Long userId) {
         String state = UUID.randomUUID().toString();
         stateMap.put(state, userId);
@@ -126,7 +127,6 @@ public class SteamService {
             throw new RuntimeException("Failed to build auth URL");
         }
     }
-
     public String handleCallback(Map<String, String> params) {
         String state = params.get("state");
         if (state == null) {
@@ -173,7 +173,6 @@ public class SteamService {
         }
         return publicUrl;
     }
-
     public boolean userOwnsGame(String steamId, Long appId) {
         if (steamId == null || appId == null) return false;
         String url = String.format("https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json", apiKey, steamId);
@@ -190,19 +189,31 @@ public class SteamService {
             return false;
         }
     }
-
     public boolean isGameReleased(Long appId) {
         if (appId == null) return true;
+        logger.info("Checking release for appId: {}", appId);
         String url = "https://store.steampowered.com/api/appdetails?appids=" + appId;
+        logger.info("URL: {}", url);
         try {
-            JsonNode root = objectMapper.readTree(restTemplate.getForObject(url, String.class));
+            String response = restTemplate.getForObject(url, String.class);
+            logger.info("Raw response: {}", response);
+            JsonNode root = objectMapper.readTree(response);
+            logger.info("Parsed root: {}", root.toString());
+            JsonNode successNode = root.path(appId.toString()).path("success");
+            if (!successNode.asBoolean()) {
+                logger.warn("API success false for appId: {}", appId);
+                return true; // Assume released if API fails
+            }
             JsonNode gameData = root.path(appId.toString()).path("data");
-            return !gameData.path("release_date").path("coming_soon").asBoolean(true);
+            logger.info("gameData: {}", gameData.toString());
+            boolean comingSoon = gameData.path("release_date").path("coming_soon").asBoolean(true);
+            logger.info("coming_soon: {}", comingSoon);
+            return !comingSoon;
         } catch (Exception e) {
-            return false;
+            logger.error("Error checking release", e);
+            return false; // Assume released on error
         }
     }
-
     public void disconnect(Long userId) {
         User user = userRepository.findById(userId).orElseThrow();
         user.setSteamId(null);

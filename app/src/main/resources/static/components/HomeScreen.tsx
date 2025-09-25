@@ -185,7 +185,7 @@ export function HomeScreen({ onGameSelect }: HomeScreenProps) {
       <Button
         variant="secondary"
         className="w-full hover:bg-primary/10 hover:shadow-md transition-all duration-300"
-        onClick={() => window.open('https://hipolink.net/mypeak/tips', '_blank')}
+        onClick={() => window.open('https://boosty.to/mypeak/donate', '_blank')}
       >
         <Heart className="mr-2 h-4 w-4 text-red-500 animate-pulse" /> Support MyPeak
       </Button>
