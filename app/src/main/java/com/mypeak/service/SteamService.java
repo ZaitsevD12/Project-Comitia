@@ -1,3 +1,4 @@
+// SteamService.java
 package com.mypeak.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,17 +62,23 @@ public class SteamService {
                         String detailsUrl = "https://store.steampowered.com/api/appdetails?appids=" + appId;
                         String detailsResponse = restTemplate.getForObject(detailsUrl, String.class);
                         JsonNode detailsRoot = objectMapper.readTree(detailsResponse);
-                        JsonNode gameData = detailsRoot.path(String.valueOf(appId)).path("data");
+                        JsonNode appNode = detailsRoot.path(String.valueOf(appId));
+                        if (!appNode.path("success").asBoolean()) continue;
+                        JsonNode gameData = appNode.path("data");
                         logger.info("gameData: {}", gameData.toString());
                         AddGameRequest request = new AddGameRequest();
                         request.setTitle(title);
-                        request.setDescription(gameData.path("short_description").asText());
-                        request.setDeveloper(gameData.path("developers").get(0).asText());
+                        request.setDescription(gameData.path("short_description").asText(""));
+                        JsonNode developers = gameData.path("developers");
+                        String developer = developers.isArray() && developers.size() > 0 ? developers.get(0).asText() : "Unknown";
+                        request.setDeveloper(developer);
                         String releaseDateStr = gameData.path("release_date").path("date").asText();
                         LocalDate releaseDate = parseReleaseDate(releaseDateStr);
                         request.setReleaseDate(releaseDate);
-                        request.setImage(gameData.path("header_image").asText());
-                        request.setGenre(gameData.path("genres").get(0).path("description").asText());
+                        request.setImage(gameData.path("header_image").asText(""));
+                        JsonNode genres = gameData.path("genres");
+                        String genre = genres.isArray() && genres.size() > 0 ? genres.get(0).path("description").asText() : "Unknown";
+                        request.setGenre(genre);
                         request.setSteamAppId(appId);
                         List<String> platforms = new ArrayList<>();
                         JsonNode platformsNode = gameData.path("platforms");
@@ -85,7 +92,7 @@ public class SteamService {
                 }
             }
         } catch (Exception e) {
-            // Log error
+            logger.error("Error processing Steam search for query: {}", query, e);
         }
     }
     private LocalDate parseReleaseDate(String dateStr) {

@@ -1,4 +1,4 @@
-// com/mypeak/config/SecurityConfig.java (added CSP)
+// SecurityConfig.java
 package com.mypeak.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +39,7 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers
-                        .contentSecurityPolicy("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.akamaihd.net https://*.steamusercontent.com https://*.steamcommunity.com https://*.steamstatic.com https://cdn.cloudflare.steamstatic.com https://*.akamai.steamstatic.com https://shared.akamai.steamstatic.com https://*.steamcontent.com https://*.steampowered.com https://cdn.steampowered.com https://avatars.akamai.steamstatic.com https://community.akamai.steamstatic.com https://*.telegram.org https://*.t.me https://avatars.telegram.org;")
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.akamaihd.net https://*.steamusercontent.com https://*.steamcommunity.com https://*.steamstatic.com https://cdn.cloudflare.steamstatic.com https://*.akamai.steamstatic.com https://shared.akamai.steamstatic.com https://*.steamcontent.com https://*.steampowered.com https://cdn.steampowered.com https://avatars.akamai.steamstatic.com https://community.akamai.steamstatic.com https://*.telegram.org https://*.t.me https://avatars.telegram.org;"))
                 );
         return http.build();
     }
