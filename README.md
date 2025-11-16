@@ -36,6 +36,7 @@ MyPeak позволяет искать игры из Steam, ставить оц�
 - `/api/users` — профиль.
 
 ## Скриншоты
-![Home](home.png)  
-![Game Page](game.png)  
-![Profile](profile.png)
+
+<img src="home.png" width="300" alt="Home">
+<img src="game.png" width="300" alt="Game Page">
+<img src="profile.png" width="300" alt="Profile">
