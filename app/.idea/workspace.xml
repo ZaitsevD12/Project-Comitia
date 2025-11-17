@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="db82db25-d4df-4db8-9e5c-f8109eb02c1f" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/App.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/config/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/connection/Bot.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/connection/Http.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/controller/GameController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/controller/ReviewController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/controller/UserController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/model/Game.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/model/Review.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/model/User.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/repository/GameRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/repository/ReviewRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/repository/UserRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/main/service/ReviewService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/App.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/Attributions.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/postcss.config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/tailwind.config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/tsconfig.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/tsconfig.node.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/static/vite.config.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 6
+}]]></component>
+  <component name="ProjectId" id="31mRUjKnwsKyxeXLgLwyJS4uC48" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="db82db25-d4df-4db8-9e5c-f8109eb02c1f" name="Changes" comment="" />
+      <created>1756127279009</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1756127279009</updated>
+    </task>
+    <servers />
+  </component>
+</project>
