@@ -2,5 +2,8 @@
 .gradle
 mypeak.db
 backup.zip
+application.properties
+*.env
+secrets/
 # Ignore Gradle build output directory
 build
